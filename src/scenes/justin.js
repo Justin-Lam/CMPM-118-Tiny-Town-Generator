@@ -1,14 +1,12 @@
-class WfcPatterns extends Phaser.Scene
+class Justin extends Phaser.Scene
 {
 	constructor() {
-		super("wfcPatternsScene");
+		super("justinScene");
 	}
 
-	preload() {
-		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");						// packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");		// tilemap in JSON
-
+	preload()
+	{
+		this.load.path = './assets/';
 		this.load.image("map pack", "mapPack_spritesheet.png");
 	}
 
@@ -143,12 +141,12 @@ class WfcPatterns extends Phaser.Scene
 	 * Processes the input image to get its patterns.
 	 * @param {number[][]} inputImageMatrix the data representation of the input image as a 2D array of tile IDs
 	 * @param {number} patternWidth N (as in NxN)
-	 * @returns {{ tiles: number[][], adjacencies: [{ index: number, direction: [number, number] }], weight: number }[]} an array of patterns
+	 * @returns {{ tiles: number[][], adjacencies: [{ index: number, direction: [number, number] }], weight: number }[]} a list of patterns
 	 */
 	getPatterns(inputImageMatrix, patternWidth)
 	{
 		ensureValidInput();
-		let patterns = createEmptyPatterns();
+		let patterns = createEmptyPatterns(inputImageMatrix.length, inputImageMatrix[0].length);
 		getTiles(patterns);
 		patterns = getWeights(patterns);	// getWeights() returns a new array without duplicate patterns so we need to reassign
 		getAdjacencies(patterns);
@@ -176,8 +174,8 @@ class WfcPatterns extends Phaser.Scene
 		}
 
 		/**
-		 * Creates an array of empty pattern objects. The amount of patterns created is the same as the amount of tiles in the input image.
-		 * @returns {{}[]} an array of pattern objects
+		 * Creates a list of empty pattern objects. The amount of patterns created is the same as the amount of tiles in the input image.
+		 * @returns {{}[]} a list of pattern objects
 		 */
 		function createEmptyPatterns()
 		{
@@ -194,7 +192,7 @@ class WfcPatterns extends Phaser.Scene
 
 		/**
 		 * Populates the tiles attribute for each pattern in patterns.
-		 * @param {{}[]} patterns  an array of pattern objects
+		 * @param {{}[]} patterns  a list of pattern objects
 		 */
 		function getTiles(patterns)
 		{
@@ -230,8 +228,8 @@ class WfcPatterns extends Phaser.Scene
 
 		/**
 		 * Populates the weight attribute for each unique pattern in patterns and removes their duplicates.
-		 * @param {{}} patterns an array of pattern objects
-		 * @returns {{}[]} an array of pattern objects
+		 * @param {{}} patterns a list of pattern objects
+		 * @returns {{}[]} a list of pattern objects
 		 */
 		function getWeights(patterns)
 		{
@@ -250,7 +248,7 @@ class WfcPatterns extends Phaser.Scene
 
 		/**
 		 * Populates the adjacencies attribute for each pattern in patterns.
-		 * @param {{}[]}} an array of pattern objects
+		 * @param {{}[]}} a list of pattern objects
 		 */
 		function getAdjacencies(patterns)
 		{
