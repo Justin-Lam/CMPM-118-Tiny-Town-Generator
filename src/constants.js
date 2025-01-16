@@ -5,10 +5,11 @@ const TILE_WIDTH = 64;				// in pixels
 const MAX_ATTEMPTS = 100;
 
 // Directions:
-const UP = [0, -1];
-const DOWN = [0, 1];
-const LEFT = [-1, 0];
-const RIGHT = [1, 0];
+// [y, x]
+const UP = [-1, 0];
+const DOWN = [1, 0];
+const LEFT = [0, -1];
+const RIGHT = [0, 1];
 const DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
 
 // Tile IDs:
@@ -45,3 +46,10 @@ const DIRT_TM = 190;
 const DIRT_TL = 9;
 const DIRT_RM = 161;
 const DIRT_LM = 189;
+
+// Input Images:
+const input1 = [
+	[WATER,		WATER,		WATER],
+	[SAND_C,	SAND_C,		WATER],
+	[GRASS_C,	GRASS_C,	SAND_C]
+];

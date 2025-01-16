@@ -14,50 +14,19 @@ class WfcPatterns extends Phaser.Scene
 
 	create()
 	{
-		// test input images
-		const inputImageMatrix1 = [
-			[WATER,		WATER,		WATER],
-			[SAND_C,	SAND_C,		WATER],
-			[GRASS_C,	GRASS_C,	SAND_C]
-		];
-		const inputImageMatrix2 = [
-			[WATER,		WATER,		WATER],
-			[SAND_C,	SAND_C,		SAND_C],
-			[GRASS_C,	GRASS_C,	SAND_C]
-		];
-		const inputImageMatrix3 = [
-			[WATER,		WATER,		WATER],
-			[SAND_C,	SAND_C,		SAND_C],
-			[GRASS_C,	GRASS_C,	GRASS_C]
-		];
-		const inputImageMatrix4 = [
-			[WATER,	WATER,	WATER],
-			[WATER,	WATER,	WATER],
-			[WATER,	WATER,	WATER]
-		];
-		const inputImageMatrix5 = [
-			[WATER,		WATER,		WATER],
-			[SAND_C,	SAND_C,		WATER],
-			[GRASS_C,	GRASS_C,	SAND_C],
-			[SAND_C,	SAND_C,		WATER]
-		];
-		const inputImageMatrix6 = [
-			[WATER,		WATER,		WATER,		WATER],
-			[SAND_C,	SAND_C,		WATER,		WATER],
-			[GRASS_C,	GRASS_C,	SAND_C,		WATER],
-		];
-		
-		// input (change these to change the output)
-		const inputImageMatrix = inputImageMatrix1;
+		const ip = new ImageProcessor();
+
+		// Parameters
+		const input = input1;
 		const N = 2;
 	
 		// logic
-		const patterns = this.getPatterns(inputImageMatrix, N)
+		const patterns = this.processImage(input, N)
 		console.log(patterns);
 
 		// input image preview
 		const map = this.make.tilemap({
-			data: inputImageMatrix,
+			data: input,
 			tileWidth: TILE_WIDTH,
 			tileHeight: TILE_WIDTH
 		});
@@ -86,7 +55,7 @@ class WfcPatterns extends Phaser.Scene
 				tileWidth: TILE_WIDTH,
 				tileHeight: TILE_WIDTH
 			});
-			const patternLayer = patternMap.createLayer(0, tileset, TILE_WIDTH*(inputImageMatrix[0].length+1), 0);
+			const patternLayer = patternMap.createLayer(0, tileset, TILE_WIDTH*(input[0].length+1), 0);
 			const adjacenciesData = [];
 			for (let i = 0; i < 4*N + 3; i++) {
 				adjacenciesData[i] = [];
@@ -135,45 +104,25 @@ class WfcPatterns extends Phaser.Scene
 				tileWidth: TILE_WIDTH,
 				tileHeight: TILE_WIDTH
 			});
-			const adjacenciesLayer = adjacenciesMap.createLayer(0, tileset, TILE_WIDTH*(inputImageMatrix[0].length+1) + TILE_WIDTH*N, 0);
+			const adjacenciesLayer = adjacenciesMap.createLayer(0, tileset, TILE_WIDTH*(input[0].length+1) + TILE_WIDTH*N, 0);
 		});
 	}
 
 	/**
-	 * Processes the input image to get its patterns.
-	 * @param {number[][]} inputImageMatrix the data representation of the input image as a 2D array of tile IDs
-	 * @param {number} patternWidth N (as in NxN)
-	 * @returns {{ tiles: number[][], adjacencies: [{ index: number, direction: [number, number] }], weight: number }[]} an array of patterns
+	 * Not periodic, not rotated
+	 * @param {number[][]} image
+	 * @param {number} N
+	 * @returns {void}
 	 */
-	getPatterns(inputImageMatrix, patternWidth)
+	processImage(image, N)
 	{
-		ensureValidInput();
+		this.validateInput(image, N);
+
 		let patterns = createEmptyPatterns();
 		getTiles(patterns);
 		patterns = getWeights(patterns);	// getWeights() returns a new array without duplicate patterns so we need to reassign
 		getAdjacencies(patterns);
 		return patterns;
-
-
-		/** Ensures that the input to getPatterns() is valid. */
-		function ensureValidInput()
-		{
-			if (inputImageMatrix.length < 1) {
-				throw new Error("Input image height is less than 1.");
-			}
-			if (inputImageMatrix[0].length < 1) {
-				throw new Error("Input image width is less than 1.");
-			}
-			if (patternWidth < 2) {
-				throw new Error("Pattern width is less than 2.");
-			}
-			if (patternWidth > inputImageMatrix.length) {
-				throw new Error("Pattern width exceeds input image height.");
-			}
-			if (patternWidth > inputImageMatrix[0].length) {
-				throw new Error("Pattern width exceeds input image width.");
-			}
-		}
 
 		/**
 		 * Creates an array of empty pattern objects. The amount of patterns created is the same as the amount of tiles in the input image.
@@ -182,7 +131,7 @@ class WfcPatterns extends Phaser.Scene
 		function createEmptyPatterns()
 		{
 			const patterns = [];
-			for (let i = 0; i < inputImageMatrix.length * inputImageMatrix[0].length; i++) {
+			for (let i = 0; i < image.length * image[0].length; i++) {
 				patterns[i] = {
 					tiles: [],
 					adjacencies: [],
@@ -199,20 +148,20 @@ class WfcPatterns extends Phaser.Scene
 		function getTiles(patterns)
 		{
 			// Loop over each tile in the input image because a pattern corresponds to each
-			for (let y = 0; y < inputImageMatrix.length; y++) {
-				for (let x = 0; x < inputImageMatrix[0].length; x++) {
+			for (let y = 0; y < image.length; y++) {
+				for (let x = 0; x < image[0].length; x++) {
 					// Loop over each tile in the corresponding pattern
 					// ny and nx refer to the 1st and 2nd N in NxN
 					const tiles = [];
-					for (let ny = 0; ny < patternWidth; ny++) {
+					for (let ny = 0; ny < N; ny++) {
 						tiles[ny] = [];
-						for (let nx = 0; nx < patternWidth; nx++) {
+						for (let nx = 0; nx < N; nx++) {
 							// using modulo to loop around an array in order to avoid going out of bounds
 							// relearned this pattern from https://banjocode.com/post/javascript/iterate-array-with-modulo
-							tiles[ny][nx] = inputImageMatrix[(y + ny) % inputImageMatrix.length][(x + nx) % inputImageMatrix[0].length];
+							tiles[ny][nx] = image[(y + ny) % image.length][(x + nx) % image[0].length];
 						}
 					}
-					patterns[y * inputImageMatrix[0].length + x].tiles = tiles;	// we're converting from 2D array position (y, x) to 1D array position (i) here
+					patterns[y * image[0].length + x].tiles = tiles;	// we're converting from 2D array position (y, x) to 1D array position (i) here
 				}
 			}
 		}
@@ -287,8 +236,8 @@ class WfcPatterns extends Phaser.Scene
 				switch (direction) {
 					case UP:
 						// Compare the overlap between everything but the bottom row of pattern1 with everything but the top row of pattern2
-						for (let y = 0; y < patternWidth-1; y++) {
-							for (let x = 0; x < patternWidth; x++) {
+						for (let y = 0; y < N-1; y++) {
+							for (let x = 0; x < N; x++) {
 								if (pattern1.tiles[y][x] != pattern2.tiles[y+1][x]) {
 									return false;
 								}
@@ -297,8 +246,8 @@ class WfcPatterns extends Phaser.Scene
 						break;
 					case DOWN:
 						// Compare the overlap between everything but the top row of pattern1 with everything but the bottom row of pattern2
-						for (let y = 1; y < patternWidth; y++) {
-							for (let x = 0; x < patternWidth; x++) {
+						for (let y = 1; y < N; y++) {
+							for (let x = 0; x < N; x++) {
 								if (pattern1.tiles[y][x] != pattern2.tiles[y-1][x]) {
 									return false;
 								}
@@ -307,8 +256,8 @@ class WfcPatterns extends Phaser.Scene
 						break;
 					case LEFT:
 						// Compare the overlap between everything but the right column of pattern1 with everything but the left column of pattern2
-						for (let y = 0; y < patternWidth; y++) {
-							for (let x = 0; x < patternWidth-1; x++) {
+						for (let y = 0; y < N; y++) {
+							for (let x = 0; x < N-1; x++) {
 								if (pattern1.tiles[y][x] != pattern2.tiles[y][x+1]) {
 									return false;
 								}
@@ -317,8 +266,8 @@ class WfcPatterns extends Phaser.Scene
 						break;
 					case RIGHT:
 						// Compare the overlap between everything but left column of pattern1 with everything but the right column of pattern2
-						for (let y = 0; y < patternWidth; y++) {
-							for (let x = 1; x < patternWidth; x++) {
+						for (let y = 0; y < N; y++) {
+							for (let x = 1; x < N; x++) {
 								if (pattern1.tiles[y][x] != pattern2.tiles[y][x-1]) {
 									return false;
 								}
@@ -332,6 +281,29 @@ class WfcPatterns extends Phaser.Scene
 				// If we're here then the overlap was the same meaning the two patterns are adjacent, so return true
 				return true;
 			}
+		}
+	}
+
+	/**
+	 * @param {number[][]} image 
+	 * @param {number} N 
+	 */
+	validateInput(image, N)
+	{
+		if (image.length < 1) {
+			throw new Error("Image height is less than 1.");
+		}
+		if (image[0].length < 1) {
+			throw new Error("Image width is less than 1.");
+		}
+		if (N < 2) {
+			throw new Error("N is less than 2.");
+		}
+		if (N > image.length) {
+			throw new Error("N is greater than image height.");
+		}
+		if (N > image[0].length) {
+			throw new Error("N is greater than image width.");
 		}
 	}
 }
