@@ -1,4 +1,4 @@
-class WfcPatterns extends Phaser.Scene
+class ImageProcessorDemo extends Phaser.Scene
 {
 	IMAGE1 = [
 		[WATER,		WATER,		WATER],
@@ -16,11 +16,13 @@ class WfcPatterns extends Phaser.Scene
 		this.IMAGE1,
 		this.IMAGE2
 	];
+
+	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
 
 	constructor() {
-		super("wfcPatternsScene");
+		super("imageProcessorDemoScene");
 	}
 
 	preload() {
@@ -32,12 +34,25 @@ class WfcPatterns extends Phaser.Scene
 
 	create()
 	{
-		const ip = new ImageProcessor();
 		this.setupInput();
 		const image = this.IMAGES[this.currentImageIndex];
-		ip.process(image, this.N);
-		console.log(ip);
+		this.ip.process(image, this.N);
+		console.log(this.ip);
 		this.showImage(image);
+	}
+
+	/** @param {number[][]} image */
+	showImage(image) {
+		if (this.imageMap) {
+			this.imageMap.destroy();
+		}
+		this.imageMap = this.make.tilemap({
+			data: image,
+			tileWidth: 64,
+			tileHeight: 64
+		});
+		const tileset = this.imageMap.addTilesetImage("map pack");
+		this.imageMap.createLayer(0, tileset, 0, 0);
 	}
 
 	setupInput() {
@@ -67,25 +82,16 @@ class WfcPatterns extends Phaser.Scene
 		const i = this.currentImageIndex;
 		const len = this.IMAGES.length;
 		const offset = len * (0 ** (d+1));	// map -1 to 1*len, 0 to 0
-		this.currentImageIndex = (i + d + offset) % len;					// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
-		const image = this.IMAGES[this.currentImageIndex];
-		this.showImage(image);
-		console.log("Now viewing image " + (this.currentImageIndex + 1));	// didn't feel like doing 0 indexing
-		this.potentiallyReduceN();
-	}
 
-	/** @param {number[][]} image */
-	showImage(image) {
-		if (this.imageMap) {
-			this.imageMap.destroy();
-		}
-		this.imageMap = this.make.tilemap({
-			data: image,
-			tileWidth: 64,
-			tileHeight: 64
-		});
-		const tileset = this.imageMap.addTilesetImage("map pack");
-		this.imageMap.createLayer(0, tileset, 0, 0);
+		this.currentImageIndex = (i + d + offset) % len;					// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
+		this.potentiallyReduceN();
+
+		const image = this.IMAGES[this.currentImageIndex];
+		this.ip.process(image, this.N);
+		this.showImage(image);
+
+		console.log("Now viewing image " + (this.currentImageIndex + 1));	// didn't feel like doing 0 indexing
+		console.log(this.ip);
 	}
 
 	potentiallyReduceN() {
@@ -111,5 +117,8 @@ class WfcPatterns extends Phaser.Scene
 		}
 		this.N += d;
 		console.log("N = " + this.N);
+
+		this.ip.process(image, this.N);
+		console.log(this.ip);
 	}
 }

@@ -6,19 +6,19 @@ class ImageProcessor {
 	 * [pattern0, pattern1, ...], where patterns are 2D arrays.
 	 * @type {number[][][]}
 	*/
-	patterns = [];
+	patterns;
 
 	/**
 	 * [[pattern1, pattern3, UP], [pattern2, pattern3, RIGHT], ...], means that pattern A is to the {direction} of pattern B.
 	 * @type {number[][]}
 	*/
-	adjacencies = [];
+	adjacencies;
 
 	/**
 	 * [pattern1Weight, pattern2Weight, ...]
 	 * @type {number[]}
 	*/
-	weights = [];
+	weights;
 
 	/**
 	 * Populates this.patterns, this.adjacencies, and this.weights.
@@ -27,6 +27,7 @@ class ImageProcessor {
 	 */
 	process(image, N) {
 		this.validateInput(image, N);
+		this.resetVariables();
 		this.getPatternsAndWeights(image, N);
 		this.getAdjacencies();
 	}
@@ -51,6 +52,12 @@ class ImageProcessor {
 		if (N > image[0].length) {
 			throw new Error("N is greater than image width.");
 		}
+	}
+
+	resetVariables() {
+		this.patterns = [];
+		this.adjacencies = [];
+		this.weights = [];
 	}
 
 	/**
