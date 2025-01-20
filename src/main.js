@@ -14,4 +14,4 @@ let config = {
 	scene: [Generator]
 }
 
-const game = new Phaser.Game(config);
+window.game = new Phaser.Game(config);
