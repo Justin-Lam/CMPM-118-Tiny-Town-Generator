@@ -1,3 +1,5 @@
+// Press S to screenshot
+
 async function saveScreenshot() {
   // Create a file handle in the chosen directory
   const fileHandle = await window.showSaveFilePicker({
@@ -25,10 +27,10 @@ async function saveScreenshot() {
 
   console.log('Screenshot saved!');
 }
+
 document.addEventListener('keydown', function(event) {
-  console.log(event.key);
   if(event.key === 's') {
-    console.log("SS");
+    console.log("Screenshot Saved!");
     saveScreenshot();
   }
 });
