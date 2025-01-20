@@ -15,9 +15,11 @@ class WfcPatterns extends Phaser.Scene
 	create()
 	{
 		const ip = new ImageProcessor();
+		ip.process(INPUT1, 2);
+		console.log(ip);
 
 		// Parameters
-		const input = input1;
+		const input = INPUT1;
 		const N = 2;
 	
 		// logic

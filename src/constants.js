@@ -48,8 +48,24 @@ const DIRT_RM = 161;
 const DIRT_LM = 189;
 
 // Input Images:
-const input1 = [
+const INPUT1 = [
 	[WATER,		WATER,		WATER],
 	[SAND_C,	SAND_C,		WATER],
 	[GRASS_C,	GRASS_C,	SAND_C]
+];
+const INPUT2 = [
+	[WATER,		WATER,		WATER,		WATER],
+	[SAND_C,	SAND_C,		WATER,		WATER],
+	[GRASS_C,	GRASS_C,	SAND_C,		WATER],
+];
+const INPUT3 = [
+	[WATER,		WATER,		WATER],
+	[SAND_C,	SAND_C,		SAND_C],
+	[GRASS_C,	GRASS_C,	SAND_C]
+];
+const INPUT4 = [
+	[WATER,		WATER,		WATER,		GRASS_C],
+	[WATER,		WATER,		WATER,		GRASS_C],
+	[WATER,		WATER,		WATER,		GRASS_C],
+	[SAND_C,	SAND_C,		SAND_C,		WATER]
 ];
