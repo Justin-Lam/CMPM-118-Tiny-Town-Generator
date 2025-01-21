@@ -60,6 +60,8 @@ class Wfc extends Phaser.Scene
 	}
 
 	parseAdjacencies(index, ip){
+		// TODO:
+		// take adjacencies from this.ip to define u, d, l, r neighbors for tile at index
 		return{
 			up: 0,
 			down: 0,
