@@ -36,30 +36,58 @@ class Wfc extends Phaser.Scene
 		let tileSet = new Set();
 		for(let i = 0; i < this.ip.patterns.length; i++){
 			for(let j = 0; j < this.ip.patterns[i].length; j++){
-				let tile;
-				for(let index of this.ip.patterns[i][j]){
-					let adj = this.parseAdjacencies(index, this.ip)
-					tile = new Tile(index, adj);				
+				for(let tile of this.ip.patterns[i][j]){
+					tileSet.add(tile);
 				}
-				tileSet.add(tile);
 			}
 		}
+		this.tilesTemp = [...tileSet];		// unique tiles passed in this.ip
+		this.tiles = [];
 
-		this.tiles = [...tileSet];		// unique tiles passed in this.ip
+		// tiles adjacencies
+		for(let i = 0; i < this.tilesTemp.length; i++){
+			let index = this.tilesTemp[i];
+			this.tiles.push(new Tile(index, this.parseAdjacencies(index)));
+		}
+		console.log(this.tiles);
 
 		this.startOver();
 		this.ready = true;
 	}
 
-	parseAdjacencies(index, ip){
+	parseAdjacencies(index){
+		let ip = this.ip;
 		// TODO:
 		// take adjacencies from this.ip to define u, d, l, r neighbors for tile at index
-		return{
-			up: 0,
-			down: 0,
-			left: 0,
-			right: 0
+		let adjacencies = {
+			up: [],
+			down: [],
+			left: [],
+			right: []
+		};
+	
+		for (let [tileA, tileB, direction] of ip.adjacencies) {
+			//console.log(this.tilesTemp[tileA], index)
+			if (this.tilesTemp[tileA] === index && this.tilesTemp[tileB]) {
+				if (direction[0] === 0 && direction[1] === -1) {
+					adjacencies.left.push(this.tilesTemp[tileB]);
+				} else if (direction[0] === 0 && direction[1] === 1) {
+					adjacencies.right.push(this.tilesTemp[tileB]);
+				} else if (direction[0] === -1 && direction[1] === 0) {
+					adjacencies.up.push(this.tilesTemp[tileB]);
+				} else if (direction[0] === 1 && direction[1] === 0) {
+					adjacencies.down.push(this.tilesTemp[tileB]);
+				}
+			}
 		}
+
+		for(let dir in adjacencies){
+			if(adjacencies[dir].length === 0){
+				adjacencies[dir] = null;
+			}
+		}
+	
+		return adjacencies;
 	}	
 
 	update() {
