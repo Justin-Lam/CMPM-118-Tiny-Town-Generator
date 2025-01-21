@@ -68,6 +68,9 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.decreaseN_Key.on("down", () => this.changeN(-1));
 		this.increaseN_Key.on("down", () => this.changeN(1));
 
+		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
+		this.wfc_Key.on("down", () => this.scene.start("wfcScene", {ip: this.ip}));
+
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Change Image: UP/DOWN <br>
