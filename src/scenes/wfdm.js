@@ -5,35 +5,39 @@ class Wfdm extends Phaser.Scene
 	MAP_HEIGHT = 25;	// in tiles
 
 	/* To Do:
-		- modify tiles in tile_colors to only include relevant ones e.g. a wndow tile shouldn't affect the house color description,
+		- modify tiles in tile_colors to only include relevant ones e.g. a window tile shouldn't affect the house color description,
 		mushrooms shouldn't make a forest "red"
 		- add more features, especially for 'ROOF'
 		- look into how to do trees
 	*/
+	// all tile IDs are 1 more than in tiled for some reason
 	TILE_COLORS = [
 		{
 			colorID: 0,
 			colorName: "red",
 			tileIDs: [
-				29, 52, 53, 54, 55, 
-				64, 65, 66, 67, 95
+				53, 54, 55, 56,
+				65, 66, 67, 68
 			]
 		},
 		{
 			colorID: 1,
 			colorName: "yellow",
 			tileIDs: [
-				3, 9, 10, 11, 15, 21, 22, 
-				23, 27, 33, 34, 35, 93, 94
+				4, 10, 11, 12, 16, 22, 23, 
+				28, 34, 35, 36
 			]
 		},
 		{
 			colorID: 2,
 			colorName: "brown",
 			tileIDs: [
-				44, 45, 46, 47, 56, 57, 58, 
-				59, 68, 69, 70, 71, 72, 73, 74, 
-				75, 80, 81, 82, 83, 84, 85, 86, 87
+				73, 74, 75, 76,
+				85, 86, 87, 88,
+				45, 46, 47, 48,
+				57, 59, 60, 
+				69, 70, 71, 72, 
+				81, 82, 83
 			]
 		},
 		{
@@ -49,9 +53,10 @@ class Wfdm extends Phaser.Scene
 			colorID: 4,
 			colorName: "gray",
 			tileIDs: [
-				48, 49, 50, 51, 60, 
-				61, 62, 63, 76, 77,
-				78, 79, 88, 89, 90, 91
+				49, 50, 51, 52, 
+				61, 62, 63, 64,
+				77, 78, 79, 80, 
+				89, 90, 91, 92
 			]
 		}
 	]
@@ -71,13 +76,16 @@ class Wfdm extends Phaser.Scene
 				"dormer": [64, 68],
 				"door": [86, 87, 88, 90, 91, 92],
 				"window": [85, 89],
-				"roof" : [],
+				//"roof" : [
+				//	49, 50, 60, 61, 62, 63, // gray
+				//	53, 54, 55, 65, 66, 67 // red
+				//],
 			}
 		},
 		{
 			name: "fence",
 			tileIDs: [
-				45, 46, 47, 48, 
+				45, 46, 47, 48,
 				57, 59, 60, 
 				69, 70, 71, 72, 
 				81, 82, 83
@@ -86,8 +94,8 @@ class Wfdm extends Phaser.Scene
 		{
 			name: "forest",
 			tileIDs: [
-				4, 5, 7, 8, 9, 10, 11, 12,
-				16, 17, 18, 19, 20, 21, 22, 23, 24, 
+				4, 5, 6, 8, 9, 10, 11, 12,
+				16, 17, 18, 19, 20, 21, 22, 23, 24,
 				28, 29, 30, 31, 32, 33, 34, 35, 36,
 				107, 95
 			],
@@ -96,7 +104,10 @@ class Wfdm extends Phaser.Scene
 				"beehive": [95],
 				"mushroom": [30],
 				"sprout": [18],
-				"tree": [],
+				//"tree": [
+				//	3, 15, 27, 9, 10, 11, 21, 22, 23, 33, 34, 35, // yellow
+				//	4, 5, 6, 7, 8, 16, 18, 19, 20, 28, 30, 31, 32 // green
+				//],
 			}
 		}
 	];
@@ -129,6 +140,7 @@ class Wfdm extends Phaser.Scene
 		this.getWorldFacts();
 		console.log("Map structures (world facts database):");
 		console.log(this.structures);
+		this.getDescriptionParagraph();
 
 		this.setInput();
 		this.displayControls();
@@ -284,13 +296,42 @@ class Wfdm extends Phaser.Scene
 		- make descriptions more specific (instead of "green and yellow forest," say "forest with green and yellow trees")
 		- figure out how to do relative positions
 	*/
+	getDescriptionParagraph()
+	{
+		let par = "";
+		for (let i = 0; i <  this.structures.length; i++)
+		{
+			let len = this.structures[i].descriptions.length;
+			par += "There is a " + this.structures[i].descriptions[len - 1] + " " + this.structures[i].descriptions[0];
+			for (let j = 1; j < this.structures[i].descriptions.length - 1; j++)
+			{
+				if (j == 1)
+				{
+					par += " with "
+				}
+
+				par += this.structures[i].descriptions[j];
+				if (j == len - 3)
+				{
+					par += ", and "
+				}
+				else if (j < len - 2)
+				{
+					par += ", "
+				}
+			}
+			par += ". "
+		}
+		console.log(par);
+	}
+
 	generateDescriptionPosition(descriptions, positions, type)
 	{
 		// describe position on map
 		let mapZone = this.getMapZone(positions[0]);
 		// ^ this is using basically a random tile of the structure to determine what zone the structure is in i believe?
 		// TODO: i think we should consider calculating the center of the structure's bounding box and use that instead
-		descriptions.push(`${type.name} at ${mapZone} of map`);
+		descriptions.push(`${type.name} at the ${mapZone} of the map`);
 	}
 
 	generateDescriptionFeatures(descriptions, mapData, positions, type)
@@ -308,7 +349,8 @@ class Wfdm extends Phaser.Scene
 			}
 			if(featureCount > 0){ 
 				if(featureCount > 1){ featureType += "s" } 	// make feature type plural
-				descriptions.push(`${mapZone} ${type.name} has ${featureCount} ${featureType}`);
+				//descriptions.push(`${mapZone} ${type.name} has ${featureCount} ${featureType}`);
+				descriptions.push(`${featureCount} ${featureType}`);
 			}
 		}
 	}
@@ -356,7 +398,7 @@ class Wfdm extends Phaser.Scene
 			}
 		}
 
-		descriptions.push(`${color1}${color2} ${type.name}`);
+		descriptions.push(`${color1}${color2}`);
 	}
 
 	getMaxColor(colorsCount) {
