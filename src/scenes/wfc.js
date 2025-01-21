@@ -158,7 +158,7 @@ class Wfc extends Phaser.Scene
 			let element = arr[i];
 			// console.log(element, valid.includes(element));
 			if (!valid.includes(element)) {
-			arr.splice(i, 1);
+				arr.splice(i, 1);
 			}
 		}
 	}
@@ -286,7 +286,13 @@ class Wfc extends Phaser.Scene
 				for(let opt of neighbor.options){
 					originalOptions.push(opt.index);
 				}
-				this.checkValid(neighbor.options, validNeighborOptions);
+				this.checkValid(originalOptions, validNeighborOptions);
+
+				for(let i = 0; i < neighbor.options.length; i++){
+					if (!originalOptions.includes(neighbor.options[i])) {
+						neighbor.options.splice(i, 1);
+					}
+				}
 	
 				// If the neighbor's options changed, push it onto the stack for further updates
 				if (neighbor.options.length < originalOptions.length) {
