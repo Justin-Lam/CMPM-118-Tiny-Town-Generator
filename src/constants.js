@@ -1,4 +1,8 @@
 // Map:
+const INPUT_MAP_WIDTH = 40;        // in tiles
+const INPUT_MAP_HEIGHT = 25;       // in tiles
+const INPUT_TILE_WIDTH = 16;
+
 const OUTPUT_MAP_WIDTH = 20;        // in tiles
 const OUTPUT_MAP_HEIGHT = 20;       // in tiles
 const TILE_WIDTH = 64;				// in pixels
