@@ -76,10 +76,12 @@ class Wfdm extends Phaser.Scene
 				"dormer": [64, 68],
 				"door": [86, 87, 88, 90, 91, 92],
 				"window": [85, 89],
-				//"roof" : [
-				//	49, 50, 60, 61, 62, 63, // gray
-				//	53, 54, 55, 65, 66, 67 // red
-				//],
+			},
+			substructures : {
+				"roof" : [
+					49, 50, 60, 61, 62, 63, // gray
+					53, 54, 55, 65, 66, 67 // red
+				],
 			}
 		},
 		{
@@ -104,11 +106,15 @@ class Wfdm extends Phaser.Scene
 				"beehive": [95],
 				"mushroom": [30],
 				"sprout": [18],
-				//"tree": [
-				//	3, 15, 27, 9, 10, 11, 21, 22, 23, 33, 34, 35, // yellow
-				//	4, 5, 6, 7, 8, 16, 18, 19, 20, 28, 30, 31, 32 // green
-				//],
+			},
+			/*
+			substructures: {
+				"tree": [
+					3, 15, 27, 9, 10, 11, 21, 22, 23, 33, 34, 35, // yellow
+					4, 5, 6, 7, 8, 16, 18, 19, 20, 28, 30, 31, 32 // green
+				],
 			}
+			*/
 		}
 	];
 
@@ -199,19 +205,13 @@ class Wfdm extends Phaser.Scene
 		// Populate
 		for (const type of this.STRUCTURE_TYPES) {
 			for (const [index, positionArray] of this.getStructures(this.singleLayerMapData, type.tileIDs).entries()) {
-				// generate position and features
-				let descriptionsList = [];
-				this.generateDescriptionPosition(descriptionsList, positionArray, type);
-				this.generateDescriptionFeatures(descriptionsList, this.singleLayerMapData, positionArray, type);
-				this.generateDescriptionColor(descriptionsList, type, this.singleLayerMapData, positionArray);
+				let struct = new Structure(type.name, index, this.getBoundingBox(positionArray));
 
-				const structure = {
-					type: type.name,
-					id: index,
-					boundingBox: this.getBoundingBox(positionArray),
-					descriptions: descriptionsList
-				};
-				this.structures.push(structure);
+				struct.qualPosition = this.getStructureQualPosition(positionArray);
+				struct.features = this.getStructureFeatures(type, this.singleLayerMapData, positionArray);
+				struct.colors = this.getColors(this.singleLayerMapData, positionArray);
+
+				this.structures.push(struct);
 			}
 		}
 	}
@@ -289,33 +289,40 @@ class Wfdm extends Phaser.Scene
 	}
 
 	// ----- DESCRIPTION GENERATION -----//
-	/*
-		To Do:
-		- compile descriptions into one paragraph
-		- include descriptions of the structures' features (e.g. number of beehives, number of doors)
-		- make descriptions more specific (instead of "green and yellow forest," say "forest with green and yellow trees")
-		- figure out how to do relative positions
-	*/
 	getDescriptionParagraph()
 	{
 		let par = "";
 		for (let i = 0; i <  this.structures.length; i++)
 		{
-			let len = this.structures[i].descriptions.length;
-			par += "There is a " + this.structures[i].descriptions[len - 1] + " " + this.structures[i].descriptions[0];
-			for (let j = 1; j < this.structures[i].descriptions.length - 1; j++)
+			let struct = this.structures[i];
+			// Initial identification
+			//let len = this.structures[i].descriptions.length;
+			par += "There is a";
+
+			for (let j = 0; j < struct.colors.length; j++)
 			{
-				if (j == 1)
+				par = par + " " + struct.colors[j];
+				if (j < struct.colors.length - 1)
+				{
+					par += " and"
+				}
+			}
+			par = par + " " + struct.type + " in the " + struct.qualPosition + " of the map";
+		
+			// Features
+			for (let j = 0; j < struct.features.length; j++)
+			{
+				if (j == 0)
 				{
 					par += " with "
 				}
 
-				par += this.structures[i].descriptions[j];
-				if (j == len - 3)
+				par += struct.features[j];
+				if (j == struct.features.length - 2)
 				{
 					par += ", and "
 				}
-				else if (j < len - 2)
+				else if (j < struct.features.length - 1)
 				{
 					par += ", "
 				}
@@ -323,21 +330,22 @@ class Wfdm extends Phaser.Scene
 			par += ". "
 		}
 		console.log(par);
+
+		return par;
 	}
 
-	generateDescriptionPosition(descriptions, positions, type)
+	getStructureQualPosition(positions)
 	{
 		// describe position on map
-		let mapZone = this.getMapZone(positions[0]);
+		return this.getMapZone(positions[0]);
 		// ^ this is using basically a random tile of the structure to determine what zone the structure is in i believe?
 		// TODO: i think we should consider calculating the center of the structure's bounding box and use that instead
-		descriptions.push(`${type.name} at the ${mapZone} of the map`);
 	}
 
-	generateDescriptionFeatures(descriptions, mapData, positions, type)
+	getStructureFeatures(type, mapData, positions)
 	{
-		let mapZone = this.getMapZone(positions[0]);
 		let features = type.features;
+		let structFeaturesList = []
 
 		// describe features
 		for(let featureType in features){
@@ -349,13 +357,21 @@ class Wfdm extends Phaser.Scene
 			}
 			if(featureCount > 0){ 
 				if(featureCount > 1){ featureType += "s" } 	// make feature type plural
-				//descriptions.push(`${mapZone} ${type.name} has ${featureCount} ${featureType}`);
-				descriptions.push(`${featureCount} ${featureType}`);
+				structFeaturesList.push(`${featureCount} ${featureType}`);
 			}
 		}
+
+		return structFeaturesList;
 	}
 
-	generateDescriptionColor(descriptions, type, mapData, positions)
+	/*
+	generateDescriptionSubstructure(descriptions, mapData, positions, type)
+	{
+		descriptions.push(`${mapZone} ${type.name} has a ${color} ${featureCount} ${featureType}`});
+	}
+	*/
+
+	getColors(mapData, positions)
 	{
 		let color1 = "";
 		let color2 = "";
@@ -376,7 +392,6 @@ class Wfdm extends Phaser.Scene
 		}
 
 		let maxColorIndex = 0;
-
 		maxColorIndex = this.getMaxColor(colorsCount); // get the most frequently-occuring color
 		for (const color of this.TILE_COLORS) {
 			if (maxColorIndex == color.colorID) {
@@ -387,18 +402,16 @@ class Wfdm extends Phaser.Scene
 		maxColorIndex = this.getMaxColor(colorsCount); // get the next most frequently-occuring color
 		if (maxColorIndex == -1)
 		{
-			color2 = "";
+			return [color1];
 		}
-		else
-		{
-			for (const color of this.TILE_COLORS) {
-				if (maxColorIndex == color.colorID) {
-					color2 = " and " + color.colorName;
-				}
+
+		for (const color of this.TILE_COLORS) {
+			if (maxColorIndex == color.colorID) {
+				color2 = color.colorName;
 			}
 		}
 
-		descriptions.push(`${color1}${color2}`);
+		return [color1, color2];
 	}
 
 	getMaxColor(colorsCount) {
@@ -418,13 +431,6 @@ class Wfdm extends Phaser.Scene
 
 		return maxColorIndex;
 	}
-
-	// TODO
-	/*
-	generateDescriptionRelativePos(descriptions, boundingBox)
-	{
-	}
-	*/
 
 	getMapZone(coords){
 		let horizontalSliceSize = this.MAP_HEIGHT / 3;	// top, center, bottom
