@@ -32,7 +32,7 @@ class Wfc extends Phaser.Scene
 		this.startTime = performance.now();
   
 		//this.ready = this.makeTilesArray("map-test");
-		// TODO: plug in adjacencies here
+		// get unique tiles
 		let tileSet = new Set();
 		for(let i = 0; i < this.ip.patterns.length; i++){
 			for(let j = 0; j < this.ip.patterns[i].length; j++){
@@ -41,24 +41,48 @@ class Wfc extends Phaser.Scene
 				}
 			}
 		}
-		this.tilesTemp = [...tileSet];		// unique tiles passed in this.ip
-		this.tiles = [];
+		this.tilesTemp = [...tileSet];
 
 		// tiles adjacencies
+		this.tiles = [];
 		for(let i = 0; i < this.tilesTemp.length; i++){
 			let index = this.tilesTemp[i];
-			this.tiles.push(new Tile(index, this.parseAdjacencies(index)));
+			this.tiles.push(
+				new Tile(index, this.parseAdjacencies(index))
+			);
 		}
-		console.log(this.tiles);
 
 		this.startOver();
 		this.ready = true;
 	}
 
+	update() {
+		if (this.ready) {
+			this.WFC();
+
+			// Check if WFC is completed
+			if (!this.ready) {
+				// End timing for WFC and print total time
+				const endTime = performance.now();
+				console.log(`WFC completed in ${(endTime - this.startTime).toFixed(2)} ms`);
+			}
+		}
+		if(this.brakes) { this.stopWFC() }
+
+		if (Phaser.Input.Keyboard.JustDown(this.reload)){
+			this.clearGrid();
+			this.startTime = performance.now();
+		}
+
+		// if this.done, then draw wfc() output
+		if(this.done){ 
+			this.drawOnLayer(this.landLayer, this.drawn, this.rotationLog); 
+		}
+	}
+
+	// take adjacencies from this.ip to define u, d, l, r neighbors for tile at index
 	parseAdjacencies(index){
 		let ip = this.ip;
-		// TODO:
-		// take adjacencies from this.ip to define u, d, l, r neighbors for tile at index
 		let adjacencies = {
 			up: [],
 			down: [],
@@ -89,30 +113,7 @@ class Wfc extends Phaser.Scene
 	
 		return adjacencies;
 	}	
-
-	update() {
-		if (this.ready) {
-			this.WFC();
-
-			// Check if WFC is completed
-			if (!this.ready) {
-				// End timing for WFC and print total time
-				const endTime = performance.now();
-				console.log(`WFC completed in ${(endTime - this.startTime).toFixed(2)} ms`);
-			}
-		}
-		if(this.brakes) { this.stopWFC() }
-
-		if (Phaser.Input.Keyboard.JustDown(this.reload)){
-			this.clearGrid();
-			this.startTime = performance.now();
-		}
-
-		// if this.done, then draw wfc() output
-		if(this.done){ 
-			this.drawOnLayer(this.landLayer, this.drawn, this.rotationLog); 
-		}
-	}
+	
 
 	startOver() {
 		// Create cell for each spot on the grid
@@ -246,33 +247,62 @@ class Wfc extends Phaser.Scene
 	}
 	
 	// Update neighbors and validate adjacency constraints, returns false if stuck
-	propagate(cell) {
-		let updated = true;
-		for (let j = 0; j < this.DIM; j++) {
-			for (let i = 0; i < this.DIM; i++) {
-				let index = i + j * this.DIM;
-				let cell = this.grid[index];
+	propagate(startCell) {
+		const stack = [startCell]; // Use a stack to process cells needing updates
 	
-				if (!cell || cell.collapsed) continue;
+		while (stack.length > 0) {
+			const cell = stack.pop();
 	
-				let options = Array.from({ length: this.tiles.length }, (_, i) => i);
+			if (!cell || !cell.collapsed) continue; // skip non-collapsed cells
 	
-				// Check valid options from each direction
-				// console.log(cell)
-				// TODO: finish			
-
-				// Update cell options if they have changed
-				//	cell.options = options;
-				if (options.length === 0) {
-					updated = false;
-				} else if (options.length === 1) {
-					cell.collapsed = true;
+			const selectedTile = cell.options[0];
+	
+			const directions = {
+				up: { dx: 0, dy: -1 },
+				down: { dx: 0, dy: 1 },
+				left: { dx: -1, dy: 0 },
+				right: { dx: 1, dy: 0 }
+			};
+	
+			// look in every direction
+			for (const [direction, { dx, dy }] of Object.entries(directions)) {
+				const neighborX = (cell.index % this.DIM) + dx;
+				const neighborY = Math.floor(cell.index / this.DIM) + dy;
+	
+				// skip if neighbor is out of bounds
+				if (neighborX < 0 || neighborX >= this.DIM || neighborY < 0 || neighborY >= this.DIM) continue;
+	
+				const neighborIndex = neighborX + neighborY * this.DIM;
+				const neighbor = this.grid[neighborIndex];
+	
+				if (!neighbor || neighbor.collapsed) continue; // skip collapsed neighbors
+	
+				// get valid tiles for the neighbor based on current cell's tile
+				const validNeighborOptions = selectedTile.neighbors[direction];
+				if (!validNeighborOptions) continue; // no constraints in this direction
+	
+				// remove invalid options from the neighbor's options
+				let originalOptions = [];
+				for(let opt of neighbor.options){
+					originalOptions.push(opt.index);
 				}
-			  const entropy = cell.options.length;
+				this.checkValid(neighbor.options, validNeighborOptions);
+	
+				// If the neighbor's options changed, push it onto the stack for further updates
+				if (neighbor.options.length < originalOptions.length) {
+					if (neighbor.options.length === 0) {
+						return false; // Deadlock detected, trigger backtracking
+					} else if (neighbor.options.length === 1) {
+						neighbor.collapsed = true; // Collapse the neighbor if only one option remains
+					}
+					stack.push(neighbor);
+				}
 			}
 		}
-		return updated;
+	
+		return true; // No deadlocks detected
 	}
+	
 	
 	// Improved backtracking mechanism
 	backtrack() {
