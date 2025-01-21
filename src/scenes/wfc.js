@@ -26,14 +26,6 @@ class Wfc extends Phaser.Scene
 		this.w = this.canvas.width / this.DIM;
 		this.h = this.canvas.height / this.DIM;
   
-		for (let j = 0; j < this.DIM; j++) {
-		  for (let i = 0; i < this.DIM; i++) {
-			  let index = i + j * this.DIM;
-			  let xPos = i * this.w + this.w / 2;
-			  let yPos = j * this.h + this.h / 2;
-		  }
-		}
-  
 		//Reload key
 		this.reload = this.input.keyboard.addKey('R');
   
@@ -131,14 +123,14 @@ class Wfc extends Phaser.Scene
 	checkValid(arr, valid) {
 		//console.log(arr, valid);
 		for (let i = arr.length - 1; i >= 0; i--) {
-		  // VALID: [BLANK, RIGHT]
-		  // ARR: [BLANK, UP, RIGHT, DOWN, LEFT]
-		  // result in removing UP, DOWN, LEFT
-		  let element = arr[i];
-		  // console.log(element, valid.includes(element));
-		  if (!valid.includes(element)) {
+			// VALID: [BLANK, RIGHT]
+			// ARR: [BLANK, UP, RIGHT, DOWN, LEFT]
+			// result in removing UP, DOWN, LEFT
+			let element = arr[i];
+			// console.log(element, valid.includes(element));
+			if (!valid.includes(element)) {
 			arr.splice(i, 1);
-		  }
+			}
 		}
 	}
   
@@ -192,10 +184,10 @@ class Wfc extends Phaser.Scene
 	
 		// If all cells are collapsed, exit
 		if (minEntropyCells.length === 0) {
-			  //this.handleRotation(); // found that it works best to do this after solving so we don't have to worry about backtracking
-			  this.ready = false;
-			  this.done = true;
-			  return;
+			//this.handleRotation(); // found that it works best to do this after solving so we don't have to worry about backtracking
+			this.ready = false;
+			this.done = true;
+			return;
 		}
 	
 		// Collapse a random cell with minimum entropy
@@ -238,7 +230,8 @@ class Wfc extends Phaser.Scene
 				let options = Array.from({ length: this.tiles.length }, (_, i) => i);
 	
 				// Check valid options from each direction
-				console.log(cell)			
+				// console.log(cell)
+				// TODO: finish			
 
 				// Update cell options if they have changed
 				//	cell.options = options;
@@ -289,54 +282,54 @@ class Wfc extends Phaser.Scene
 		this.drawn = Array(this.DIM * this.DIM).fill(null);
 		this.layers.forEach(layer => layer.removeAll());
 		this.ready = true;  // Reset ready state
-	  }
+	}
+
+	// rotate tiles properly
+	handleRotation(layer){
+		for (let j = 0; j < this.DIM; j++) {
+			for (let i = 0; i < this.DIM; i++) {
+				let index = i + j * this.DIM;
+				let r = this.rotationLog[index];
+				if(r) layer.getAt(index).setRotation((Math.PI / 2) * r);
+			}
+		}
+	}
   
-	  // rotate tiles properly
-	  handleRotation(layer){
-		  for (let j = 0; j < this.DIM; j++) {
-			  for (let i = 0; i < this.DIM; i++) {
-				  let index = i + j * this.DIM;
-				  let r = this.rotationLog[index];
-				  if(r) layer.getAt(index).setRotation((Math.PI / 2) * r);
-			  }
-		  }
-	  }
-  
-	  getWeightedRandom(options) {
-		  let totalWeight = options.reduce((sum, index) => sum + this.tiles[index].weight, 0);
-		  let random = this.seededRandom(this.seed).value * totalWeight;
-	  
-		  for (let i = 0; i < options.length; i++) {
-			  const optionIndex = options[i];
-			  const weight = this.tiles[optionIndex].weight;
-			  if (random < weight) {
-				  // Update the seed state
-				  let { seed: newSeed } = this.seededRandom(this.seed);
-				  this.seed = newSeed;
-				  return optionIndex;
-			  }
-			  random -= weight;
-		  }
-	  
-		  return undefined; // If no option matches, return undefined for backtracking
-	  }
+	getWeightedRandom(options) {
+		let totalWeight = options.reduce((sum, index) => sum + this.tiles[index].weight, 0);
+		let random = this.seededRandom(this.seed).value * totalWeight;
+	
+		for (let i = 0; i < options.length; i++) {
+			const optionIndex = options[i];
+			const weight = this.tiles[optionIndex].weight;
+			if (random < weight) {
+				// Update the seed state
+				let { seed: newSeed } = this.seededRandom(this.seed);
+				this.seed = newSeed;
+				return optionIndex;
+			}
+			random -= weight;
+		}
+	
+		return undefined; // If no option matches, return undefined for backtracking
+	}
   
 	  drawOnLayer(layer, image, rotations){
-		  for (let j = 0; j < this.DIM; j++) {
-			  for (let i = 0; i < this.DIM; i++) {
-				  let r = this.rotationLog[i + j * this.DIM];
-				  let index = i + j * this.DIM;
-				  let imageSprite = this.add.sprite(
-					  image[index].x, 
-					  image[index].y, 
-					  image[index].img);
-				  imageSprite.setScale(this.w / imageSprite.width, this.h / imageSprite.height);
-				  imageSprite.isBlank = image[index].isBlank;
-				  layer.addAt(imageSprite, index);
-			  }
-		  }
-  
-		  if(rotations) this.handleRotation(layer, rotations);
-		  this.done = false;
-	  }
+		for (let j = 0; j < this.DIM; j++) {
+			for (let i = 0; i < this.DIM; i++) {
+				let r = this.rotationLog[i + j * this.DIM];
+				let index = i + j * this.DIM;
+				let imageSprite = this.add.sprite(
+					image[index].x, 
+					image[index].y, 
+					image[index].img);
+				imageSprite.setScale(this.w / imageSprite.width, this.h / imageSprite.height);
+				imageSprite.isBlank = image[index].isBlank;
+				layer.addAt(imageSprite, index);
+			}
+		}
+
+		if(rotations) this.handleRotation(layer, rotations);
+		this.done = false;
+	}
 }
