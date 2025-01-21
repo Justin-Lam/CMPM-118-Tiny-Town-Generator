@@ -1,6 +1,6 @@
 class Generator extends Phaser.Scene
 {
-	GRASSY_TILES = [GRASS_BL, GRASS_BM, GRASS_BR, GRASS_C, GRASS_LM, GRASS_RM, GRASS_TL, GRASS_TM, GRASS_TR];
+	GRASSY_TILES = [1, 2, 3];
 	constructor() {
 		super("generatorScene");
 	}
@@ -13,19 +13,29 @@ class Generator extends Phaser.Scene
 
 	create()
 	{
-		this.createInputMap();
+		this.getInputMap();
 		/*
 			1. Get the matrix for the "Ground-n-Walkways" layer
 				Since this layer contains some tiles that aren't grassy (1s, 2s, or 3s), convert them into grassy tiles
 			2. Get the matrix for the "Houses-n-Fences" + "Trees-n-Bushes" layers
 				Move the tiles that weren't grassy from the Ground-n-Walkways" layer into here as well (such as paths)
 		*/
-		this.groundMatrix;
+		this.inputGroundMatrix;
 		let nonGrassyTiles = this.getGroundMatrix();
-		console.log(this.groundMatrix);
-		this.structuresMatrix;
+		console.log(this.inputGroundMatrix);
+
+		this.inputStructuresMatrix;
 		this.getStructuresMatrix(nonGrassyTiles);
+		console.log(this.inputStructuresMatrix);
+
+		this.matrixVisualization();
 		/*
+			1. Get the matrix for the "Ground-n-Walkways" layer
+				Since this layer contains some tiles that aren't grassy (1s, 2s, or 3s), convert them into grassy tiles
+				
+			2. Get the matrix for the "Houses-n-Fences" + "Trees-n-Bushes" layers
+				Move the tiles that weren't grassy from the Ground-n-Walkways" layer into here as well (such as paths)
+
 			3. Run wfc on the ground matrix using the image processor and the constraint solver
 				Turn the outputted image into a new ground layer
 
@@ -41,7 +51,7 @@ class Generator extends Phaser.Scene
 	}
 
 	// Making the Pathfinder map to feed into WFC
-	createInputMap() {
+	getInputMap() {
 		// Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
 		this.multiLayerMap = this.add.tilemap("three-farmhouses", INPUT_TILE_WIDTH, INPUT_TILE_WIDTH, INPUT_MAP_HEIGHT, INPUT_MAP_WIDTH);
 
@@ -59,6 +69,10 @@ class Generator extends Phaser.Scene
         this.housesLayer.setVisible(false);
 	}
 
+	matrixVisualization() { // For testing the get matrices functions
+
+	}
+
 	getGroundMatrix() {
 		let matrix = [];
 		let nonGrassyTiles = [];
@@ -69,19 +83,41 @@ class Generator extends Phaser.Scene
 			for (let x = 0; x < INPUT_MAP_WIDTH; x++) {
 				let tileIndex = this.groundLayer.layer.data[y][x].index;
 				if (this.GRASSY_TILES.includes(tileIndex)) {
-					nonGrassyTiles[y][x] = tileIndex;
+					matrix[y][x] = tileIndex;
 				}
 				else {
-					matrix[y][x] = tileIndex;
+					nonGrassyTiles[y][x] = tileIndex;
+					matrix[y][x] = 1;
 				}
 			}
 		}
 
-		this.groundMatrix = matrix;
+		this.inputGroundMatrix = matrix;
 		return nonGrassyTiles;
 	}
 
 	getStructuresMatrix(nonGrassyTiles) {
+		let matrix = [];
 
+		for (let y = 0; y < INPUT_MAP_HEIGHT; y++) {
+			matrix[y] = [];
+			for (let x = 0; x < INPUT_MAP_WIDTH; x++) {
+				matrix[y][x] = 0; // 0 = blank
+
+				if (this.treesLayer.layer.data[y][x].index > 0) {
+					matrix[y][x] = this.treesLayer.layer.data[y][x].index;
+				}
+
+				if (this.housesLayer.layer.data[y][x].index > 0) {
+					matrix[y][x] = this.housesLayer.layer.data[y][x].index;
+				}
+
+				if (nonGrassyTiles[y][x] > 0) {
+					matrix[y][x] = nonGrassyTiles[y][x];
+				}
+			}
+		}
+
+		this.inputStructuresMatrix = matrix;
 	}
 }
