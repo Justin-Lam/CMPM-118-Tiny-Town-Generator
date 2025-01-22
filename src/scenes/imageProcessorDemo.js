@@ -5,6 +5,7 @@ class ImageProcessorDemo extends Phaser.Scene
 		[SAND_C,	SAND_C,		WATER],
 		[GRASS_C,	GRASS_C,	SAND_C]
 	];
+
 	IMAGE2 = [
 		[WATER,		WATER,		WATER,		WATER],
 		[SAND_C,	SAND_C,		WATER,		WATER],
@@ -17,9 +18,14 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.IMAGE2
 	];
 
+	TILES = [
+		WATER,		SAND_C,		GRASS_C
+	]
+
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
+	outputSize = 10;	// this should be a multiple of N
 
 	constructor() {
 		super("imageProcessorDemoScene");
@@ -69,7 +75,9 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.increaseN_Key.on("down", () => this.changeN(1));
 
 		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
-		this.wfc_Key.on("down", () => this.scene.start("wfcScene", {ip: this.ip}));
+		this.wfc_Key.on("down", () => {
+			new WFC(this.ip, this.outputSize, this.N)
+		});
 
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
