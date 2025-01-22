@@ -112,48 +112,52 @@ class ImageProcessorDemo extends Phaser.Scene
 		document.getElementById("description").innerHTML = controls;
 	}
 
-	/** @param {number} d delta */
-	changeImage(d) {
+	/** @param {number} di delta index, must be -1 or 1 */
+	changeImage(di) {
 		const i = this.currentImageIndex;
 		const len = this.IMAGES.length;
-		const offset = len * (0 ** (d+1));	// map -1 to 1*len, 0 to 0
-
-		this.currentImageIndex = (i + d + offset) % len;					// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
-		this.potentiallyReduceN();
+		this.currentImageIndex = (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
+		const reducedN = this.potentiallyReduceN();
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
 		this.showImage(image);
 
 		console.log("Now viewing image " + (this.currentImageIndex + 1));	// didn't feel like doing 0 indexing
+		if (reducedN) console.log("N has been reduced to " + this.N);
 		console.log(this.ip);
 	}
 
+	/** @returns {boolean} whether N was reduced */
 	potentiallyReduceN() {
 		const image = this.IMAGES[this.currentImageIndex];
 		const h = image.length;
 		const w = image[0].length;
 		if (h < this.N || w < this.N) {
 			this.N = Math.max(h, w);
-			console.log("N has been reduced to " + this.N);
+			return true;
 		}
+		return false;
 	}
 
-	/** @param {number} d delta */
-	changeN(d) {
-		if (this.N + d < 2) {
+	/** @param {number} di delta index, must be -1 or 1 */
+	changeN(di) {
+		if (this.N + di < 2) {
 			console.log("N cannot be less than 2");
 			return;
 		}
+
 		const image = this.IMAGES[this.currentImageIndex];
-		if (this.N + d > Math.max(image.length, image[0].length)) {
+		const h = image.length;
+		const w = image[0].length;
+		if (this.N + di > Math.max(h, w)) {
 			console.log("N cannot exceed image size");
 			return;
 		}
-		this.N += d;
-		console.log("N = " + this.N);
 
+		this.N += di;
 		this.ip.process(image, this.N);
+		console.log("N = " + this.N);
 		console.log(this.ip);
 	}
 }
