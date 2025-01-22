@@ -1,15 +1,50 @@
 class ImageProcessorDemo extends Phaser.Scene
 {
+	// Tile IDs
+	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
+	BLANK = 195;
+	WATER = 56;
+
+	GRASS_C = 40;
+	GRASS_BR = 11;
+	GRASS_BM = 25;
+	GRASS_BL = 39;
+	GRASS_TR = 41;
+	GRASS_TM = 55;
+	GRASS_TL = 69;
+	GRASS_RM = 26;
+	GRASS_LM = 54;
+
+	SAND_C = 110;
+	SAND_BR = 81;
+	SAND_BM = 95;
+	SAND_BL = 109;
+	SAND_TR = 14;
+	SAND_TM = 28;
+	SAND_TL = 42;
+	SAND_RM = 96;
+	SAND_LM = 124;
+
+	DIRT_C = 175;
+	DIRT_BR = 146;
+	DIRT_BM = 160;
+	DIRT_BL = 174;
+	DIRT_TR = 176;
+	DIRT_TM = 190;
+	DIRT_TL = 9;
+	DIRT_RM = 161;
+	DIRT_LM = 189;
+
 	IMAGE1 = [
-		[WATER,		WATER,		WATER],
-		[SAND_C,	SAND_C,		WATER],
-		[GRASS_C,	GRASS_C,	SAND_C]
+		[this.WATER,	this.WATER,		this.WATER],
+		[this.SAND_C,	this.SAND_C,	this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C]
 	];
 	IMAGE2 = [
-		[WATER,		WATER,		WATER,		WATER],
-		[SAND_C,	SAND_C,		WATER,		WATER],
-		[GRASS_C,	GRASS_C,	SAND_C,		WATER],
-		[GRASS_C,	GRASS_C,	SAND_C,		WATER]
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER],
+		[this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER]
 	];
 
 	IMAGES = [
