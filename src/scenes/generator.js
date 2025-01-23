@@ -37,10 +37,12 @@ class Generator extends Phaser.Scene
 			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
 			console.log(this.ip);
 			this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
+			console.log(this.structuresLayer);
 			this.showImage(this.structuresLayer);
 
 			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
 			this.wm = new Wfdm(this.structuresLayer, 5, 5, this.structRange);
+			this.wm.getWorldFacts();
 			this.wm.printWorldFacts();
 			this.paragraphDescription = this.wm.getDescriptionParagraph();
 			console.log(this.paragraphDescription);
