@@ -14,16 +14,6 @@ class Generator extends Phaser.Scene
 
 	create()
 	{
-		/*this.map = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
-
-        // Add a tileset to the map
-        this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-
-        // Create the layers
-        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-        this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-        this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);*/
-
 		// Run wfc on the ground matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new ground layer
 		this.ip.process(PATHFINDER_GROUND, this.N);
