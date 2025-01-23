@@ -17,25 +17,6 @@ class Generator extends Phaser.Scene
 	create()
 	{
 		this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
-		
-		// Run wfc on the ground matrix using the image processor and the constraint solver
-			// Turn the outputted image into a new ground layer
-		//this.ip.process(PATHFINDER_GROUND, this.N); // img processor
-		//console.log(this.ip);
-		//this.groundMap = new WFC(this.ip, this.outputSize).generated;
-		//this.showImage(this.groundMap);
-
-		// Run wfc on the structures matrix using the image processor and the constraint solver
-			// Turn the outputted image into a new structures layer
-		this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
-		console.log(this.ip);
-		this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
-		this.showImage(this.structuresLayer);
-
-			
-		// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
-		// this.wm = new Wfdm(structuresArray, mapWidth, mapHeight, structRange);
-
 		// Display the ground and structures layer and take a screenshot
 
 		// generate stuff
@@ -43,6 +24,21 @@ class Generator extends Phaser.Scene
 		this.generateKey.on("down", () => {
 			// generate stuff
 			console.log("generating map");
+			// Run wfc on the ground matrix using the image processor and the constraint solver
+			// Turn the outputted image into a new ground layer
+			//this.ip.process(PATHFINDER_GROUND, this.N); // img processor
+			//console.log(this.ip);
+			//this.groundMap = new WFC(this.ip, this.outputSize).generated;
+			//this.showImage(this.groundMap);
+
+			// Run wfc on the structures matrix using the image processor and the constraint solver
+				// Turn the outputted image into a new structures layer
+			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
+			console.log(this.ip);
+			this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
+			this.showImage(this.structuresLayer);
+			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
+			// this.wm = new Wfdm(structuresArray, mapWidth, mapHeight, structRange);
 		});
 		// Store the screenshot, ground and structures layer, and world facts database together
 	}
