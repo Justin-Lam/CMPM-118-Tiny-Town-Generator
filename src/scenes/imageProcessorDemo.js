@@ -46,15 +46,29 @@ class ImageProcessorDemo extends Phaser.Scene
 		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
 		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER]
 	];
+	IMAGE3 = [
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER],
+		[this.WATER,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
+		[this.WATER,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
+		[this.WATER,	this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER]
+	];
 
 	IMAGES = [
 		this.IMAGE1,
-		this.IMAGE2
+		this.IMAGE2,
+		this.IMAGE3
 	];
+
+	ZOOM = 0.5;
 
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
+	currentAdjacencyIndex = 0;
 
 	constructor() {
 		super("imageProcessorDemoScene");
@@ -62,18 +76,21 @@ class ImageProcessorDemo extends Phaser.Scene
 
 	preload() {
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");						// packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");		// tilemap in JSON
 		this.load.image("map pack", "mapPack_spritesheet.png");
 	}
 
 	create()
 	{
 		this.setupInput();
+
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
-		console.log(this.ip);
 		this.showImage(image);
+		this.showAdjacency();
+		console.log(this.ip);
+
+		this.cameras.main.setZoom(this.ZOOM);
+		this.cameras.main.setBounds(0, 0, 1280, 800);
 	}
 
 	/** @param {number[][]} image */
@@ -86,8 +103,52 @@ class ImageProcessorDemo extends Phaser.Scene
 			tileWidth: 64,
 			tileHeight: 64
 		});
-		const tileset = this.imageMap.addTilesetImage("map pack");
-		this.imageMap.createLayer(0, tileset, 0, 0);
+		if (!this.tileset) {
+			this.tileset = this.imageMap.addTilesetImage("map pack");
+		}
+		this.imageMap.createLayer(0, this.tileset, 0, 0);
+	}
+
+	showAdjacency() {
+		if (this.ip.adjacencies.length === 0) {
+			if (this.pattern1Map) {
+				this.pattern1Map.destroy();
+			}
+			if (this.pattern2Map) {
+				this.pattern2Map.destroy();
+			}
+			return;
+		}
+
+		const adjacency = this.ip.adjacencies[this.currentAdjacencyIndex];
+		const pattern1Index = adjacency[0];
+		const pattern2Index = adjacency[1];
+		const directionIndex = adjacency[2];
+		const pattern1 = this.ip.patterns[pattern1Index];
+		const pattern2 = this.ip.patterns[pattern2Index];
+		const dir = DIRECTIONS[directionIndex];
+		const dy = dir[0] * 200;
+		const dx = dir[1] * 200;
+
+		if (this.pattern2Map) {
+			this.pattern2Map.destroy();
+		}
+		this.pattern2Map = this.make.tilemap({
+			data: pattern2,
+			tileWidth: 64,
+			tileHeight: 64
+		});
+		this.pattern2Map.createLayer(0, this.tileset, 800, 300);
+
+		if (this.pattern1Map) {
+			this.pattern1Map.destroy();
+		}
+		this.pattern1Map = this.make.tilemap({
+			data: pattern1,
+			tileWidth: 64,
+			tileHeight: 64
+		});
+		this.pattern1Map.createLayer(0, this.tileset, 800 + dx, 300 + dy);
 	}
 
 	setupInput() {
@@ -95,19 +156,21 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.nextImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.decreaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
 		this.increaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
-		this.prevPattern_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-		this.nextPattern_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+		this.prevAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+		this.nextAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
 		this.prevImage_Key.on("down", () => this.changeImage(-1));
 		this.nextImage_Key.on("down", () => this.changeImage(1));
 		this.decreaseN_Key.on("down", () => this.changeN(-1));
 		this.increaseN_Key.on("down", () => this.changeN(1));
+		this.prevAdjacency_Key.on("down", () => this.changeAdjacency(-1));
+		this.nextAdjacency_Key.on("down", () => this.changeAdjacency(1));
 
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Change Image: UP/DOWN <br>
 		Change N: LEFT/RIGHT <br>
-		Change Pattern: W/S
+		Change Adjacency: W/S
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}
@@ -118,10 +181,12 @@ class ImageProcessorDemo extends Phaser.Scene
 		const len = this.IMAGES.length;
 		this.currentImageIndex = (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
 		const reducedN = this.potentiallyReduceN();
+		this.currentAdjacencyIndex = 0;
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
 		this.showImage(image);
+		this.showAdjacency();
 
 		console.log("Now viewing image " + (this.currentImageIndex + 1));	// didn't feel like doing 0 indexing
 		if (reducedN) console.log("N has been reduced to " + this.N);
@@ -156,8 +221,25 @@ class ImageProcessorDemo extends Phaser.Scene
 		}
 
 		this.N += di;
+		this.currentAdjacencyIndex = 0;
+
 		this.ip.process(image, this.N);
+		this.showAdjacency();
+
 		console.log("N = " + this.N);
 		console.log(this.ip);
+	}
+
+	/** @param {number} di delta index, must be -1 or 1 */
+	changeAdjacency(di) {
+		if (this.ip.adjacencies.length === 0) {
+			console.log("No adjacencies to view");
+			return;
+		}
+		const i = this.currentAdjacencyIndex;
+		const len = this.ip.adjacencies.length;
+		this.currentAdjacencyIndex = (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
+		this.showAdjacency();
+		console.log("Now viewing adjacency " + (this.currentAdjacencyIndex + 1))	// didn't feel like doing 0 indexing
 	}
 }
