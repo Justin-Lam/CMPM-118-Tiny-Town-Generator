@@ -44,7 +44,8 @@ class Generator extends Phaser.Scene
 		});
 		this.structuresLayer = this.map.createLayer("Structures", this.tileset, 0, 0);
 			
-		// Run wfdm on the structures layer
+		// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
+		// this.wm = new Wfdm(structuresArray, mapWidth, mapHeight, structRange);
 
 		// Display the ground and structures layer and take a screenshot
 

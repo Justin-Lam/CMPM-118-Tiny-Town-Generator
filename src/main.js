@@ -11,7 +11,7 @@ let config = {
 	render: {
 		pixelArt: true	// prevent pixel art from getting blurred when scaled
 	},
-	scene: [WfdmDemo]
+	scene: [Generator]
 }
 
 window.game = new Phaser.Game(config);
