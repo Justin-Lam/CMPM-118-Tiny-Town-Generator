@@ -5,20 +5,23 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Tiny Town Generator</title>
 		<script src="./lib/phaser.js"></script>
-		<script src="./src/classes/Tile.js"></script>
-		<script src="./src/classes/Cell.js"></script>
-		<script src="./src/classes/imageProcessor.js"></script>
-		<script src="./src/classes/Structure.js"></script>
-		<script src="./src/classes/WFC.js"></script>
-		<script src="./src/classes/wfdm.js"></script>
-		<script src="./src/scenes/generator.js"></script>
-		<script src="./src/scenes/imageProcessorDemo.js"></script>
-		<script src="./src/scenes/wfdm.js"></script>
-		<script src="./src/scenes/wfcDemo.js"></script>
-		<script src="./src/scenes/wfdmDemo.js"></script>
-		<script src="./src/constants.js"></script>
-		<script src="./src/main.js"></script>
-		<script src="./src/screenshot.js"></script>
+
+		<script src="./src/1_classes/Cell.js"></script>
+		<script src="./src/1_classes/Structure.js"></script>
+		<script src="./src/1_classes/Tile.js"></script>
+		<script src="./src/1_classes/constraintSolver.js"></script>
+		<script src="./src/1_classes/imageProcessor.js"></script>
+		<script src="./src/1_classes/worldFactsDatabaseMaker.js"></script>
+
+		<script src="./src/2_utility/constants.js"></script>
+		<script src="./src/2_utility/screenshot.js"></script>
+
+		<script src="./src/3_demos/imageProcessorDemo.js"></script>
+		<script src="./src/3_demos/waveFunctionCollapseDemo.js"></script>
+		<script src="./src/3_demos/worldFactsDatabaseMakerDemo.js"></script>
+
+		<script src="./src/4_main/generator.js"></script>
+		<script src="./src/4_main/main.js"></script>
 	</head>
 	<body>
 		<div id="phaser-game"></div>

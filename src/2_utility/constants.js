@@ -1,5 +1,4 @@
-// Directions:
-// [y, x]
+// [y, x], where positive y goes down and positve x goes right
 const UP = [-1, 0];
 const DOWN = [1, 0];
 const LEFT = [0, -1];

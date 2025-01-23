@@ -1,5 +1,8 @@
-// contains the functions used to create PATHFINDER_GROUND and PATHFINDER_STRUCTURES in constants.js
-// saving here in case it's ever needed :3
+/*
+	This file contains the functions used to create PATHFINDER_GROUND and PATHFINDER_STRUCTURES in constants.js
+	It is being save in case it's ever needed again
+	:3
+*/
 
 class PathfinderDataMiner extends Phaser.Scene
 {
