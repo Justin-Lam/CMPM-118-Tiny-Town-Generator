@@ -1,6 +1,7 @@
 class Generator extends Phaser.Scene
 {
 	GRASSY_TILES = [1, 2, 3];
+	INPUT_TILE_WIDTH = 16;
 	constructor() {
 		super("generatorScene");
 	}
@@ -70,7 +71,11 @@ class Generator extends Phaser.Scene
 	}
 
 	matrixVisualization() { // For testing the get matrices functions
-
+		const groundMap = this.make.tilemap({
+			data: this.inputGroundMatrix,
+			tileWidth: TILE_WIDTH,
+			tileHeight: TILE_WIDTH
+		});
 	}
 
 	getGroundMatrix() {
