@@ -66,7 +66,7 @@ class wfcDemo extends Phaser.Scene
 	TILES = [
 		this.WATER,		this.SAND_C,		this.GRASS_C
 	]
-	ZOOM = 0.5;
+	ZOOM = 1;
 
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
