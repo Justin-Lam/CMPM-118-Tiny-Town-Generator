@@ -1,4 +1,4 @@
-class ImageProcessorDemo extends Phaser.Scene
+class wfcDemo extends Phaser.Scene
 {
 	// Tile IDs
 	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
@@ -36,17 +36,18 @@ class ImageProcessorDemo extends Phaser.Scene
 	DIRT_LM = 189;
 
 	IMAGE1 = [
-		[this.WATER,	this.WATER,		this.WATER],
-		[this.SAND_C,	this.SAND_C,	this.WATER],
-		[this.GRASS_C,	this.GRASS_C,	this.SAND_C]
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
 	];
 	IMAGE2 = [
-		[this.WATER,	this.WATER,		this.WATER,		this.WATER],
-		[this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
-		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
-		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER]
-	];
-	IMAGE3 = [
 		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
 		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
 		[this.WATER,	this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER],
@@ -59,19 +60,22 @@ class ImageProcessorDemo extends Phaser.Scene
 
 	IMAGES = [
 		this.IMAGE1,
-		this.IMAGE2,
-		this.IMAGE3
+		this.IMAGE2
 	];
 
+	TILES = [
+		this.WATER,		this.SAND_C,		this.GRASS_C
+	]
 	ZOOM = 0.5;
 
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
 	currentAdjacencyIndex = 0;
+	outputSize = 5;
 
 	constructor() {
-		super("imageProcessorDemoScene");
+		super("wfcDemoScene");
 	}
 
 	preload() {
@@ -166,11 +170,17 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.prevAdjacency_Key.on("down", () => this.changeAdjacency(-1));
 		this.nextAdjacency_Key.on("down", () => this.changeAdjacency(1));
 
+		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
+		this.wfc_Key.on("down", () => {
+			new WFC(this.ip, this.outputSize)
+		});
+
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Change Image: UP/DOWN <br>
 		Change N: LEFT/RIGHT <br>
 		Change Adjacency: W/S
+        Run WFC: TAB
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}
