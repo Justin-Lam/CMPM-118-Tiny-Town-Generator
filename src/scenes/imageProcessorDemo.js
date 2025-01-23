@@ -42,10 +42,16 @@ class ImageProcessorDemo extends Phaser.Scene
 	];
 
 	IMAGE2 = [
-		[this.WATER,	this.WATER,		this.WATER,		this.WATER],
-		[this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
-		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
-		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER]
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.SAND_C,	this.SAND_C,	this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER,		this.WATER],
 	];
 
 	IMAGES = [
@@ -54,7 +60,7 @@ class ImageProcessorDemo extends Phaser.Scene
 	];
 
 	TILES = [
-		WATER,		SAND_C,		GRASS_C
+		this.WATER,		this.SAND_C,		this.GRASS_C
 	]
 
 	ip = new ImageProcessor();

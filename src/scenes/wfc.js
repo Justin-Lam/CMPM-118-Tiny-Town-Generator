@@ -50,6 +50,7 @@ class WFC // extends Phaser.Scene
 					result[index] = { 
 						x: x, y: y,
 						collapsed: false,
+						visited: false,		// flag for propagation
 						options: options,	// init every cell with all possible options
 						neighbors: {		// indeces of neighboring cells
 							up:		(y > 0) 		? ((y - 1) * size) + x : null,
@@ -72,6 +73,7 @@ class WFC // extends Phaser.Scene
 		let pick = this.randomIndex(observed.cell.options);
 		observed.cell.options = [observed.cell.options[pick]];
 
+		this.resetVisitFlag();
 		return this.propagate(observed);
 	}
 
@@ -105,6 +107,8 @@ class WFC // extends Phaser.Scene
 				
 				let neighbor = this.grid[neighborAddress]; 
 				//if(neighbor.collapsed === true){ continue; }
+				if(neighbor.visited === true){ continue; }
+				neighbor.visited = true;
 
 				// NEW VERSION: writes valid options to neighbor.options
 				// issue -- outputting a grid with invalid adjacencies
@@ -168,23 +172,27 @@ class WFC // extends Phaser.Scene
 					// add to collapsed array
 					this.collapsed[(neighbor.y * this.size) + neighbor.x] = neighbor;
 
-					// remove niehgbor from this.uncollapsed
+					// remove neighbor from this.uncollapsed
 					for(let i = 0; i < this.uncollapsed.length; i++){
 						if(this.uncollapsed[i].x === neighbor.x && this.uncollapsed[i].y === neighbor.y){
 							this.uncollapsed.splice(i, 1);
 							break;
 						}
 					}
+
+					continue;
 				}
 
 				// IFF neighbor has less options than it started with, add it to stack
 				//		for the changes to be propagated
 				if(neighbor.options.length < this.patternOptions.length){
-					stack.push[neighbor];
+					stack.push(neighbor);
 				} 
 			}
 		}
-	
+		
+		console.log("propagated")
+		this.printGrid();
 		return true; // no deadlocks detected
 	}
 	
@@ -200,30 +208,32 @@ class WFC // extends Phaser.Scene
 		let result = [];
 		for(let p of patterns){
 			let pAdj = {};
-			for(let dir of ["up", "down", "left", "right"]){
+			for(let dir in DIRECTIONS){
 				let dirOptions = [];
 				let found = false;
 				for(let adj of this.ip.adjacencies){	
-					if(adj[0] === p && this.getDir(adj[2]) === dir){
+					if(adj[0] === p && `${adj[2]}` === dir){
 						dirOptions.push(adj[1]);
 						found = true;
 					}	
 				}
-				if(found) pAdj[dir] = dirOptions;
+				if(found) pAdj[this.dirStr(dir)] = dirOptions;
 			}
 			result.push(pAdj)
 		}
 		return result;
 	}
 
-	// dirArray = [dX, dY]
-	getDir(dirArray){
-		if(dirArray[0] === 0){
-			if(dirArray[1] === 1) return "down";
-			if(dirArray[1] === -1) return "up";
+	// dir = 0, 1, 2, 3	--> [ 0,    1,    2,     3]
+	// const DIRECTIONS = 	[UP, DOWN, LEFT, RIGHT];
+	// convert dir from int to string (mostly for easier debugging)
+	dirStr(dir){
+		switch(dir){
+			case "0": return "up"	
+			case "1": return "down"	
+			case "2": return "left"	
+			case "3": return "right"
 		}
-		if(dirArray[0] === 1) return "right";
-		if(dirArray[0] === -1) return "left";
 	}
 
 	cullOptions(cellOption, dir, neighbor){
@@ -264,6 +274,12 @@ class WFC // extends Phaser.Scene
 		}
 		
 		console.log(print)
+	}
+
+	resetVisitFlag(){
+		for(let cell of this.grid){
+			cell.visited = false;
+		}
 	}
 
 }
