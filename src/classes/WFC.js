@@ -172,10 +172,10 @@ class WFC {
 						visited: false,		// flag for propagation
 						options: options,	// init every cell with all possible options
 						neighbors: {		// indeces of neighboring cells
-							up:		(y > 0) 		? ((y - 1) * size) + x : null,
-							down:	(y < size - 1) 	? ((y + 1) * size) + x : null,
-							left:	(x > 0) 		? (y * size) + (x - 1) : null,
-							right:	(x < size - 1) 	? (y * size) + (x + 1) : null
+							down:		(y > 0) 		? ((y - 1) * size) + x : null,
+							up:	(y < size - 1) 	? ((y + 1) * size) + x : null,
+							right:	(x > 0) 		? (y * size) + (x - 1) : null,
+							left:	(x < size - 1) 	? (y * size) + (x + 1) : null
 						}
 					};	
 				}	

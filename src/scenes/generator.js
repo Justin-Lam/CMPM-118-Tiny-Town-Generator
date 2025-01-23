@@ -1,7 +1,7 @@
 class Generator extends Phaser.Scene
 {
 	ip = new ImageProcessor();
-	outputSize = 10;
+	outputSize = 5;
 	N = 2;
 
 	constructor() {
@@ -16,6 +16,8 @@ class Generator extends Phaser.Scene
 
 	create()
 	{
+		this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
+		
 		// Run wfc on the ground matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new ground layer
 		//this.ip.process(PATHFINDER_GROUND, this.N); // img processor
@@ -28,7 +30,7 @@ class Generator extends Phaser.Scene
 		this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
 		console.log(this.ip);
 		this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
-		//this.showImage(this.structuresLayer);
+		this.showImage(this.structuresLayer);
 
 			
 		// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
@@ -49,7 +51,6 @@ class Generator extends Phaser.Scene
 			tileHeight: 16
 		});
 		if (!this.tileset) {
-			this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
 			this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 		}
 		this.imageMap.createLayer(0, this.tileset, 0, 0);
