@@ -4,7 +4,7 @@
 	:3
 */
 
-class PathfinderDataMiner extends Phaser.Scene
+class TilemapDataMiner extends Phaser.Scene
 {
 	GRASSY_TILES = [1, 2, 3];
 	INPUT_TILE_WIDTH = 16;
