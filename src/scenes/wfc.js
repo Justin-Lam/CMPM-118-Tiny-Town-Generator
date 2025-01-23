@@ -5,7 +5,13 @@ class WFC // extends Phaser.Scene
 		this.ip = ip;
 		this.size = size / N;
 
-		this.init();
+		// TODO: get pattern rotations
+		if(this.init()){
+			console.log("WFC finished!");
+			console.log(this.grid);
+			console.log(this.patternAdjs);
+			this.printGrid();	// print pattern choices in console
+		}
 	}
 
 	init(){
@@ -30,8 +36,7 @@ class WFC // extends Phaser.Scene
 			if(!cont) this.init();
 		}
 
-		console.log(this.grid);
-		console.log("WFC finished!");
+		return true;
 	}
 
 	initGrid(size, options) {
@@ -99,8 +104,30 @@ class WFC // extends Phaser.Scene
 				if(neighborAddress === null){ continue; }	// cell doesnt have a neighbor in this direction
 				
 				let neighbor = this.grid[neighborAddress]; 
-				if(neighbor.collapsed === true){ continue; }
-				
+				//if(neighbor.collapsed === true){ continue; }
+
+				// NEW VERSION: writes valid options to neighbor.options
+				// issue -- outputting a grid with invalid adjacencies
+				//		 - technically though the adjacencies would be valid with rotation
+				// left neighbor's options == cell tile's left adjacencies, etc
+				let valid = new Set();	// set to prevent duplication
+				for(let cellOption of cell.options){
+					let pAdj = this.patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
+					if(!pAdj) continue;								// pattern has no adjacencies in this direction
+					for(let adj of pAdj){	
+						valid.add(adj);	
+					}
+				}
+				// find which of neighbor's options are still valid
+				// issue -- if i comment the following two lines out, it works but WFC outputs
+				//				a grid with invalid adjacencies present
+				//		 -- if i leave it, sometimes gets the error that there are too many recursions
+				//		  - also still seems to output invalid adjs :(
+				let newOptions = valid.intersection(new Set(neighbor.options));
+				neighbor.options = [...newOptions];
+
+				/*
+				// OLD VERSION: deletes invalid options
 				// cull invalid options from neighbor.options
 				let cull = [];
 				for(let cellOption of cell.options){
@@ -113,9 +140,12 @@ class WFC // extends Phaser.Scene
 						case "left": filterDir = "right"; break;
 						case "right": filterDir = "left"; break;
 					}
-					cull = cull.concat(this.cullOptions(cellOption, filterDir, neighbor));
-				}
+					//cull = cull.concat(this.cullOptions(cellOption, filterDir, neighbor));
 
+				}
+				*/
+
+				/*
 				// remove cull elements from neighbor.options
 				let len = neighbor.options.length;
 				for(let i = len - 1; i >= 0; i--){
@@ -124,6 +154,7 @@ class WFC // extends Phaser.Scene
 						neighbor.options.splice(i, 1);
 					}
 				}
+				*/
 
 				if(neighbor.options.length === 0){
 					// deadlock -- start over
@@ -185,6 +216,7 @@ class WFC // extends Phaser.Scene
 		return result;
 	}
 
+	// dirArray = [dX, dY]
 	getDir(dirArray){
 		if(dirArray[0] === 0){
 			if(dirArray[1] === 1) return "down";
@@ -218,7 +250,20 @@ class WFC // extends Phaser.Scene
 	}
 
 
+	// DEBUG HELPER
+	printGrid(){
+		let print = "";
 
-
+		for(let y = 0; y < this.size; y++){
+			for(let x = 0; x < this.size; x++){
+				let index = (y * this.size) + x;
+				let str = `${this.grid[index].options[0]}`;
+				print += str.padEnd(4);		// a minor TODO: change 4 to a variable
+			}
+			print += `\n`
+		}
+		
+		console.log(print)
+	}
 
 }
