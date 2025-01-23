@@ -131,12 +131,19 @@ class WFC {
 	// conversion function to get the top left tile of every pattern
 	#patternsToTiles(){
 		let result = []
-		for(let cell of this.#grid){
-			let patternIndex = cell.options[0];
-			let pattern = this.#ip.patterns[patternIndex];
-			let tile = pattern[0][0];		// top left tile of pattern
+		for(let y = 0; y < this.#size; y++){
+			let row = [];
+			for(let x = 0; x < this.#size; x++){
+				let index = (y * this.#size) + x;
+				let cell = this.#grid[index];
+							
+				let patternIndex = cell.options[0];
+				let pattern = this.#ip.patterns[patternIndex];
+				let tile = pattern[0][0];		// top left tile of pattern
 			
-			result.push(tile);		
+				row.push(tile);		
+			}
+			result.push(row);
 		}
 
 		return result;
