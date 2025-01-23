@@ -32,5 +32,15 @@ class Generator extends Phaser.Scene
 
 			7. Store the screenshot, ground and structures layer, and world facts database together
 		*/
+		// generate stuff
+		this.map = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
+
+        // Add a tileset to the map
+        this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
+
+        // Create the layers
+        this.groundLayer = this.map.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+        this.treesLayer = this.map.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
+        this.housesLayer = this.map.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 	}
 }

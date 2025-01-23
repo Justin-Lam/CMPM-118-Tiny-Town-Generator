@@ -21,7 +21,7 @@ class Generator extends Phaser.Scene
 	{
 		console.log("test");
 		// generate stuff
-		this.map = this.add.tilemap("three-farmhouses", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
+		this.map = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
 
         // Add a tileset to the map
         this.tileset = this.map.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
