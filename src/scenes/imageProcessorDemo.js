@@ -31,7 +31,7 @@ class ImageProcessorDemo extends Phaser.Scene
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
-	outputSize = 10;	// this should be a multiple of N
+	outputSize = 5;	// this should be a multiple of N
 
 	constructor() {
 		super("imageProcessorDemoScene");
@@ -82,7 +82,7 @@ class ImageProcessorDemo extends Phaser.Scene
 
 		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
 		this.wfc_Key.on("down", () => {
-			new WFC(this.ip, this.outputSize, this.N)
+			new WFC(this.ip, this.outputSize)
 		});
 
 		const controls = `

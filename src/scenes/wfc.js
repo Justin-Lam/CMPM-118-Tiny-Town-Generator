@@ -1,11 +1,10 @@
 class WFC // extends Phaser.Scene
 {
-	constructor(ip, size, N) {
+	constructor(ip, size) {
 		//super("wfcScene");
 		this.ip = ip;
-		this.size = size / N;
+		this.size = size;
 
-		// TODO: get pattern rotations
 		if(this.init()){
 			console.log("WFC finished!");
 			console.log(this.grid);
@@ -76,6 +75,7 @@ class WFC // extends Phaser.Scene
 		return this.propagate(observed);
 	}
 
+	// TODO: get minimun entropy
 	observe(){
 		let pickIndex = this.randomIndex(this.uncollapsed);
 		let cell = this.uncollapsed[pickIndex];
