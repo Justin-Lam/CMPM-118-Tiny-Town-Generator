@@ -2,6 +2,8 @@ class Generator extends Phaser.Scene
 {
 	GRASSY_TILES = [1, 2, 3];
 	INPUT_TILE_WIDTH = 16;
+	INPUT_MAP_HEIGHT = 25;
+	INPUT_MAP_WIDTH = 40;
 	constructor() {
 		super("generatorScene");
 	}
@@ -54,7 +56,7 @@ class Generator extends Phaser.Scene
 	// Making the Pathfinder map to feed into WFC
 	getInputMap() {
 		// Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
-		this.multiLayerMap = this.add.tilemap("three-farmhouses", INPUT_TILE_WIDTH, INPUT_TILE_WIDTH, INPUT_MAP_HEIGHT, INPUT_MAP_WIDTH);
+		this.multiLayerMap = this.add.tilemap("three-farmhouses", this.INPUT_TILE_WIDTH, this.INPUT_TILE_WIDTH, this.INPUT_MAP_HEIGHT, this.INPUT_MAP_WIDTH);
 
 		// Add a tileset to the map
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
@@ -70,22 +72,14 @@ class Generator extends Phaser.Scene
         this.housesLayer.setVisible(false);
 	}
 
-	matrixVisualization() { // For testing the get matrices functions
-		const groundMap = this.make.tilemap({
-			data: this.inputGroundMatrix,
-			tileWidth: TILE_WIDTH,
-			tileHeight: TILE_WIDTH
-		});
-	}
-
 	getGroundMatrix() {
 		let matrix = [];
 		let nonGrassyTiles = [];
 
-		for (let y = 0; y < INPUT_MAP_HEIGHT; y++) {
+		for (let y = 0; y < this.INPUT_MAP_HEIGHT; y++) {
 			matrix[y] = [];
 			nonGrassyTiles[y] = [];
-			for (let x = 0; x < INPUT_MAP_WIDTH; x++) {
+			for (let x = 0; x < this.INPUT_MAP_WIDTH; x++) {
 				let tileIndex = this.groundLayer.layer.data[y][x].index;
 				if (this.GRASSY_TILES.includes(tileIndex)) {
 					matrix[y][x] = tileIndex;
@@ -104,9 +98,9 @@ class Generator extends Phaser.Scene
 	getStructuresMatrix(nonGrassyTiles) {
 		let matrix = [];
 
-		for (let y = 0; y < INPUT_MAP_HEIGHT; y++) {
+		for (let y = 0; y < this.INPUT_MAP_HEIGHT; y++) {
 			matrix[y] = [];
-			for (let x = 0; x < INPUT_MAP_WIDTH; x++) {
+			for (let x = 0; x < this.INPUT_MAP_WIDTH; x++) {
 				matrix[y][x] = 0; // 0 = blank
 
 				if (this.treesLayer.layer.data[y][x].index > 0) {
@@ -124,5 +118,21 @@ class Generator extends Phaser.Scene
 		}
 
 		this.inputStructuresMatrix = matrix;
+	}
+
+	matrixVisualization() { // For testing the get matrices functions
+		const groundMap = this.make.tilemap({
+			data: this.inputGroundMatrix,
+			tileWidth: this.INPUT_TILE_WIDTH,
+			tileHeight: this.INPUT_TILE_WIDTH
+		});
+		this.groundMapLayer = groundMap.createLayer(0, this.tileset, 0, 0);
+
+		const structuresMap = this.make.tilemap({
+			data: this.inputStructuresMatrix,
+			tileWidth: this.INPUT_TILE_WIDTH,
+			tileHeight: this.INPUT_TILE_WIDTH
+		});
+		this.structuresMapLayer = structuresMap.createLayer(0, this.tileset, 0, 0);
 	}
 }
