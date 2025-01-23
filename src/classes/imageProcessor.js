@@ -1,29 +1,27 @@
-/**
- * Not periodic, doesn't do reflections
- */
+/** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
 class ImageProcessor {
 	/** 
-	 * [pattern0, pattern1, ...], where patterns are 2D arrays.
+	 * Ex: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
 	 * @type {number[][][]}
 	*/
 	patterns;
 
 	/**
-	 * [[pattern1, pattern3, UP], [pattern2, pattern3, RIGHT], ...], means that pattern A is to the {direction} of pattern B.
+	 * Ex: [ [pattern1, pattern3, UP], [pattern2, pattern3, RIGHT], ... ], where A is to the {direction} of B.
 	 * @type {number[][]}
 	*/
 	adjacencies;
 
 	/**
-	 * [pattern1Weight, pattern2Weight, ...]
+	 * Ex. [ pattern0Weight, pattern1Weight, ... ]
 	 * @type {number[]}
 	*/
 	weights;
 
 	/**
 	 * Populates this.patterns, this.adjacencies, and this.weights.
-	 * @param {number[][]} image 
-	 * @param {number} N 
+	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number} N the desired width of the resulting square patterns
 	 */
 	process(image, N) {
 		this.validateInput(image, N);
@@ -61,8 +59,8 @@ class ImageProcessor {
 	}
 
 	/**
-	 * @param {number[][]} image 
-	 * @param {number} N 
+	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number} N the desired width of the resulting square patterns
 	 */
 	getPatternsAndWeights(image, N) {
 		/*
@@ -71,27 +69,27 @@ class ImageProcessor {
 			Using a map will let us filter out duplicates and know which index in this.weights to increment
 		*/
 		const uniquePatterns = new Map();	// <pattern, index>
-		for (let y = 0; y < image.length-N+1; y++) {
-			for (let x = 0; x < image[0].length-N+1; x++) {
+		for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
+			for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
 				const pattern = this.getPattern(image, N, y, x);
-				const patternStr = pattern.toString();	// need to convert to string because maps compare arrays using their pointers
+				const patternStr = pattern.toString();		// need to convert to string because maps compare arrays using their pointers
 				if (uniquePatterns.has(patternStr)) {
 					this.weights[uniquePatterns.get(patternStr)]++;
 				}
 				else {
-					uniquePatterns.set(patternStr, this.patterns.length);
 					this.patterns.push(pattern);
 					this.weights.push(1);
+					uniquePatterns.set(patternStr, this.patterns.length-1);
 				}
 			}
 		}
 	}
 
 	/**
-	 * @param {number[][]} image 
-	 * @param {number} N 
-	 * @param {number} y
-	 * @param {number} x
+	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number} N the desired width of the resulting square patterns
+	 * @param {number} y the y position in the image of the top left tile of the pattern
+	 * @param {number} x the x position in the image of the top left tile of the pattern
 	 * @returns {number[][]}
 	 */
 	getPattern(image, N, y, x) {
@@ -109,17 +107,18 @@ class ImageProcessor {
 		/*
 			Because pattern adjacency is commutative (A is adjacent to B means B is adjacent to A)
 			We don't need to check combos that we've already done
-			Hence why j starts at i+1 instead of 0
+			Hence why j starts at i+1
 		*/
+		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);
 		for (let i = 0; i < this.patterns.length; i++) {
 			for (let j = i+1; j < this.patterns.length; j++) {
-				for (const dir of DIRECTIONS) {
+				for (let k = 0; k < DIRECTIONS.length; k++) {
 					const p1 = this.patterns[i];
 					const p2 = this.patterns[j];
+					const dir = DIRECTIONS[k];
 					if (this.isAdjacent(p1, p2, dir)) {
-						const oppositeDir = dir.map((n) => -n);
-						this.adjacencies.push([i, j, dir]);
-						this.adjacencies.push([j, i, oppositeDir]);
+						this.adjacencies.push([i, j, k]);
+						this.adjacencies.push([j, i, oppositeDirIndex.get(k)]);
 					}
 				}
 			}
@@ -127,7 +126,7 @@ class ImageProcessor {
 	}
 
 	/**
-	 * If p1 is to the {dir} of p2. Also means if p2 is to the {-dir} of p1.
+	 * Returns whether p1 is to the {dir} of p2. The result also tells whether p2 is to the {opposite dir} of p1.
 	 * @param {number[][]} p1 pattern 1
 	 * @param {number[][]} p2 pattern 2
 	 * @param {number[]} dir direction
@@ -135,24 +134,25 @@ class ImageProcessor {
 	 */
 	isAdjacent(p1, p2, dir) {
 		/*
-			Example of how this function works:
+			Check if the patterns overlap, for example:
 			Suppose dir is UP ([-1, 0])
 
 				p1
 			X	X	X			p2
-			O	O	O		O	O	O
-			O	O	O		O	O	O
+			1	2	3		1	2	3
+			4	5	6		4	5	6
 							X	X	X
 
-			If every O in p1 matches with its corresponding O in p2, p1 is to the top of p2
+			If every number in p1 matches with its corresponding number in p2, then p1 is to the top of p2
 		*/
-		
+		const start = new Map([[-1, 1], [1, 0], [0, 0]]);
+		const end = new Map([[-1, 0], [1, -1], [0, 0]]);
 		const dy = dir[0];
 		const dx = dir[1];
-		const startY = 0 ** (dy+1);				// map -1 to 1, 1 to 0, 0 to 0
-		const startX = 0 ** (dx+1);				// map -1 to 1, 1 to 0, 0 to 0
-		const endY = p1.length + -(dy+1)/2;		// map -1 to 0, 1 to -1; then add to length
-		const endX = p1[0].length + -(dx+1)/2;	// map -1 to 0, 1 to -1; then add to length
+		const startY = start.get(dy);
+		const startX = start.get(dx);
+		const endY = p1.length + end.get(dy);
+		const endX = p1[0].length + end.get(dx);
 
 		for (let y = startY; y < endY; y++) {
 			for (let x = startX; x < endX; x++) {

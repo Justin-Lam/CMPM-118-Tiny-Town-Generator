@@ -1,22 +1,51 @@
 class ImageProcessorDemo extends Phaser.Scene
 {
+	// Tile IDs
+	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
+	BLANK = 195;
+	WATER = 56;
+
+	GRASS_C = 40;
+	GRASS_BR = 11;
+	GRASS_BM = 25;
+	GRASS_BL = 39;
+	GRASS_TR = 41;
+	GRASS_TM = 55;
+	GRASS_TL = 69;
+	GRASS_RM = 26;
+	GRASS_LM = 54;
+
+	SAND_C = 110;
+	SAND_BR = 81;
+	SAND_BM = 95;
+	SAND_BL = 109;
+	SAND_TR = 14;
+	SAND_TM = 28;
+	SAND_TL = 42;
+	SAND_RM = 96;
+	SAND_LM = 124;
+
+	DIRT_C = 175;
+	DIRT_BR = 146;
+	DIRT_BM = 160;
+	DIRT_BL = 174;
+	DIRT_TR = 176;
+	DIRT_TM = 190;
+	DIRT_TL = 9;
+	DIRT_RM = 161;
+	DIRT_LM = 189;
+
 	IMAGE1 = [
-		[WATER,		WATER,		WATER],
-		[SAND_C,	SAND_C,		WATER],
-		[GRASS_C,	GRASS_C,	SAND_C]
+		[this.WATER,	this.WATER,		this.WATER],
+		[this.SAND_C,	this.SAND_C,	this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C]
 	];
 
 	IMAGE2 = [
-		[WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		SAND_C,		SAND_C,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		SAND_C,		SAND_C,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		SAND_C,		SAND_C,		GRASS_C,	GRASS_C,	SAND_C,		SAND_C,		WATER,		WATER],
-		[WATER,		WATER,		SAND_C,		SAND_C,		GRASS_C,	GRASS_C,	SAND_C,		SAND_C,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		SAND_C,		SAND_C,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		SAND_C,		SAND_C,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER],
-		[WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER,		WATER],
+		[this.WATER,	this.WATER,		this.WATER,		this.WATER],
+		[this.SAND_C,	this.SAND_C,	this.WATER,		this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER],
+		[this.GRASS_C,	this.GRASS_C,	this.SAND_C,	this.WATER]
 	];
 
 	IMAGES = [
@@ -94,48 +123,52 @@ class ImageProcessorDemo extends Phaser.Scene
 		document.getElementById("description").innerHTML = controls;
 	}
 
-	/** @param {number} d delta */
-	changeImage(d) {
+	/** @param {number} di delta index, must be -1 or 1 */
+	changeImage(di) {
 		const i = this.currentImageIndex;
 		const len = this.IMAGES.length;
-		const offset = len * (0 ** (d+1));	// map -1 to 1*len, 0 to 0
-
-		this.currentImageIndex = (i + d + offset) % len;					// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
-		this.potentiallyReduceN();
+		this.currentImageIndex = (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
+		const reducedN = this.potentiallyReduceN();
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
 		this.showImage(image);
 
 		console.log("Now viewing image " + (this.currentImageIndex + 1));	// didn't feel like doing 0 indexing
+		if (reducedN) console.log("N has been reduced to " + this.N);
 		console.log(this.ip);
 	}
 
+	/** @returns {boolean} whether N was reduced */
 	potentiallyReduceN() {
 		const image = this.IMAGES[this.currentImageIndex];
 		const h = image.length;
 		const w = image[0].length;
 		if (h < this.N || w < this.N) {
 			this.N = Math.max(h, w);
-			console.log("N has been reduced to " + this.N);
+			return true;
 		}
+		return false;
 	}
 
-	/** @param {number} d delta */
-	changeN(d) {
-		if (this.N + d < 2) {
+	/** @param {number} di delta index, must be -1 or 1 */
+	changeN(di) {
+		if (this.N + di < 2) {
 			console.log("N cannot be less than 2");
 			return;
 		}
+
 		const image = this.IMAGES[this.currentImageIndex];
-		if (this.N + d > Math.max(image.length, image[0].length)) {
+		const h = image.length;
+		const w = image[0].length;
+		if (this.N + di > Math.max(h, w)) {
 			console.log("N cannot exceed image size");
 			return;
 		}
-		this.N += d;
-		console.log("N = " + this.N);
 
+		this.N += di;
 		this.ip.process(image, this.N);
+		console.log("N = " + this.N);
 		console.log(this.ip);
 	}
 }
