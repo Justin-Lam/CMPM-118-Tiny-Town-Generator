@@ -38,6 +38,12 @@ class Generator extends Phaser.Scene
 
 		// Display the ground and structures layer and take a screenshot
 
+		// generate stuff
+		this.generateKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+		this.generateKey.on("down", () => {
+			// generate stuff
+			console.log("generating map");
+		});
 		// Store the screenshot, ground and structures layer, and world facts database together
 	}
 

@@ -93,7 +93,9 @@ class WfdmDemo extends Phaser.Scene
 	displayControls() {
 		document.getElementById("description").innerHTML = `
 		<h2>Controls</h2>
-		Swap maps: M
+		Swap maps: M <br>
+		Save screenshot: S <br>
+		Generate map: R
 		`;
 	}
 }
