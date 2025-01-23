@@ -16,9 +16,11 @@ class Generator extends Phaser.Scene
 	{
 		// Run wfc on the ground matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new ground layer
+		this.ip.process(PATHFINDER_GROUND, this.N);
 
 		// Run wfc on the structures matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new structures layer
+		this.ip.process(PATHFINDER_STRUCTURES, this.N);
 			
 		// Run wfdm on the structures layer
 
