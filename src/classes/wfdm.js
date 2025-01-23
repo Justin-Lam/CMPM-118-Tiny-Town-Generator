@@ -107,10 +107,11 @@ class Wfdm {
     
     MIN_STRUCTURE_SIZE = 3;	// in tiles
     
-    constructor(mapData, mapWidth, mapHeight) {
+    constructor(mapData, mapWidth, mapHeight, structRange) {
         this.mapData = mapData;
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
+        this.structRange = structRange;
         this.structures = [];
 	}
 
@@ -181,7 +182,10 @@ class Wfdm {
 	
 			// Add neighbors to stack
 			for (const dir of this.DIRECTIONS) {
-				stack.push({ x: x + dir.x, y: y + dir.y });
+                for (let i = 1; i <= this.structRange; i ++)
+                {
+                    stack.push({ x: x + (dir.x * i), y: y + (dir.y * i) });
+                }
 			}
 		}
 	
@@ -208,6 +212,8 @@ class Wfdm {
 	}
 
 	// ----- DESCRIPTION GENERATION -----//
+    // TODO: make a QnA version
+    
 	getDescriptionParagraph()
 	{
 		let par = "";
