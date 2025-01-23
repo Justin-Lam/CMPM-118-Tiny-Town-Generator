@@ -28,8 +28,8 @@ class Generator extends Phaser.Scene
 			// Turn the outputted image into a new ground layer
 			//this.ip.process(PATHFINDER_GROUND, this.N); // img processor
 			//console.log(this.ip);
-			//this.groundMap = new WFC(this.ip, this.outputSize).generated;
-			//this.showImage(this.groundMap);
+			//this.groundLayer = new WFC(this.ip, this.outputSize).generated;
+			//this.showImage(this.groundLayer);
 
 			// Run wfc on the structures matrix using the image processor and the constraint solver
 				// Turn the outputted image into a new structures layer
@@ -37,8 +37,12 @@ class Generator extends Phaser.Scene
 			console.log(this.ip);
 			this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
 			this.showImage(this.structuresLayer);
+
 			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
-			// this.wm = new Wfdm(structuresArray, mapWidth, mapHeight, structRange);
+			this.wm = new Wfdm(this.structuresLayer, mapWidth, mapHeight, structRange);
+			this.wm.printWorldFacts();
+			this.paragraphDescription = this.wm.getDescriptionParagraph();
+			console.log(this.paragraphDescription);
 		});
 		// Store the screenshot, ground and structures layer, and world facts database together
 	}
