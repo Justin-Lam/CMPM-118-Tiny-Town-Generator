@@ -25,6 +25,10 @@ class Generator extends Phaser.Scene
 		// Display the ground and structures layer and take a screenshot
 
 		// generate stuff
+		this.generateKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+		this.generateKey.on("down", () => {
+			// generate stuff
+		});
 		this.map = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
 
         // Add a tileset to the map
