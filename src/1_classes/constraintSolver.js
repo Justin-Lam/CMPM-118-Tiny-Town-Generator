@@ -5,7 +5,7 @@
 
 // this class handles all of the heavy lifting for generating a WFC grid
 // the only parameter available outside of the class is the resulting grid
-class WFC {
+class ConstraintSolver {
 	// private properties
 	#ip;
 	#size;
