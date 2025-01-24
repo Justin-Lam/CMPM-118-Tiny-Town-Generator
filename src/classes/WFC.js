@@ -1,3 +1,8 @@
+// TODO:	- max attempts
+// 			- replace recursion with iteration
+//			- replace uncollapsed grid with a counter/array of cell addresses ?
+//			- backtracking ?
+
 // this class handles all of the heavy lifting for generating a WFC grid
 // the only parameter available outside of the class is the resulting grid
 class WFC {
@@ -8,18 +13,34 @@ class WFC {
 	#grid;
 	#patternOptions;
 	#uncollapsed;
+	#attemptsRemaining;
 
 	constructor(ip, size) {
+		this.#attemptsRemaining = 8000;
+
 		this.#ip = ip;
 		this.#size = size;
 
-		if(this.#run()){
-			console.log("WFC finished!");
-			////console.log(this.#patternAdjs)
-			this.#printGrid();
+		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
 
-			// output accesible outside of class
-			this.generated = this.#patternsToTiles();	// converts grid from pattern to tiles
+		// reorganize this.#ip.adjacencies by pattern and direction
+		//		this will help in the propagation phase
+		this.#patternAdjs = this.#adjByPattern(this.#patternOptions);
+
+		if(this.#run()){
+			if(this.#attemptsRemaining > 0){ 
+				console.log("WFC finished!");
+
+				console.log(this.#patternAdjs)
+				this.#printGrid();
+
+				// output accesible outside of class
+				this.generated = this.#patternsToTiles();	// converts grid from pattern to tiles
+			}
+			else{ 
+				console.log(`WFC failed -- attempts exceeded max allowed`); 
+				this.generated = null;
+			}
 		}
 	}
 
@@ -28,21 +49,17 @@ class WFC {
 	// run() is the command center of the WFC algorithm
 	#run(){
 		console.log("initializing WFC...");
+		this.#attemptsRemaining--;
 
 		// initialize cell grid 
 		// 		each cell starts with all patterns as its options (uncollapsed)
-		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
-		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
-
-		// reorganize this.#ip.adjacencies by pattern and direction
-		//		this will help in the propagation phase
-		this.#patternAdjs = this.#adjByPattern(this.#patternOptions);
+		this.#grid = this	.#initGrid(this.#size, this.#patternOptions);
 
 		this.#uncollapsed = [...this.#grid];				// copy of this.#grid to help with observe phase
 
 		// loops until WFC is completed
 		let cont = true; 								// bool to track whether to continue WFC	
-		while(this.#uncollapsed.length > 0){
+		while(this.#uncollapsed.length > 0 && this.#attemptsRemaining > 0){
 			let cell = this.#observe();					// picks a random uncollapsed cell
 			let pick = this.#randomIndex(cell.options);	// pick one option of observed's options
 
@@ -94,7 +111,7 @@ class WFC {
 					// left neighbor's options == cell tile's left adjacencies, etc
 					let pAdj = this.#patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
 					if(!pAdj) continue;								// pattern has no adjacencies in this direction
-					for(let adj of pAdj){	
+					for(let adj of pAdj){		// TODO: try freeing this from a for loop
 						valid.add(adj);	
 					}
 				}
@@ -109,6 +126,7 @@ class WFC {
 				if(neighbor.options.length === 1){	// this neighbor is collapsed!
 					neighbor.collapsed = true;
 
+					// TODO: remove this logic from for loop
 					// remove neighbor from this.#uncollapsed
 					for(let i = 0; i < this.#uncollapsed.length; i++){
 						if(this.#uncollapsed[i].x === neighbor.x && this.#uncollapsed[i].y === neighbor.y){

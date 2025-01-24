@@ -1,7 +1,7 @@
 class Generator extends Phaser.Scene
 {
 	ip = new ImageProcessor();
-	outputSize = 5;
+	outputSize = 7;
 	N = 2;
 
 	constructor() {
