@@ -4,9 +4,6 @@
 class TilemapDataMiner extends Phaser.Scene
 {
 	GRASSY_TILES = [1, 2, 3];
-	INPUT_TILE_WIDTH = 16;
-	INPUT_MAP_HEIGHT = 25;
-	INPUT_MAP_WIDTH = 40;
 
 	constructor() {
 		super("tilemapDataMinerScene");
@@ -22,8 +19,8 @@ class TilemapDataMiner extends Phaser.Scene
 	{
 		// ENTER DATA HERE
 		const key = "three-farmhouses";
-		const width = 40;
-		const height = 25;
+		const width = 40;	// in tiles
+		const height = 25;	// in tiles
 		const layerNames = [
 			"Ground-n-Walkways",
 			"Trees-n-Bushes",
