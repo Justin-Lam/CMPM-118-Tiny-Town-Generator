@@ -1,7 +1,7 @@
 class Generator extends Phaser.Scene
 {
 	ip = new ImageProcessor();
-	outputSize = 7;
+	outputSize = 5;
 	N = 2;
 	structRange = 2;
 
@@ -36,7 +36,7 @@ class Generator extends Phaser.Scene
 			// Turn the outputted image into a new structures layer
 			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
 			console.log(this.ip);
-			this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
+			this.structuresLayer = new ConstraintSolver(this.ip, this.outputSize).generated;
 			this.showImage(this.structuresLayer);
 
 			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)

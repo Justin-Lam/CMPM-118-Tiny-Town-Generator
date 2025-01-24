@@ -1,6 +1,5 @@
 // TODO:	- max attempts
 // 			- replace recursion with iteration
-//			- replace uncollapsed grid with a counter/array of cell addresses ?
 //			- backtracking ?
 
 // this class handles all of the heavy lifting for generating a WFC grid
@@ -53,9 +52,10 @@ class ConstraintSolver {
 
 		// initialize cell grid 
 		// 		each cell starts with all patterns as its options (uncollapsed)
-		this.#grid = this	.#initGrid(this.#size, this.#patternOptions);
+		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
 
-		this.#uncollapsed = [...this.#grid];				// copy of this.#grid to help with observe phase
+		// an array representing the indeces of uncollapsed cells
+		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
 
 		// loops until WFC is completed
 		let cont = true; 								// bool to track whether to continue WFC	
@@ -77,13 +77,15 @@ class ConstraintSolver {
 	// observe phase -- picks a random uncollapsed cell
 	//		TODO: add functionality to get minimun entropy
 	#observe(){
-		let pickIndex = this.#randomIndex(this.#uncollapsed);
-		let cell = this.#uncollapsed[pickIndex];
+		// get the index of an uncollapsed cell
+		let uncollapsedIndex = this.#randomIndex(this.#uncollapsed);	
+
+		let pickIndex = this.#uncollapsed[uncollapsedIndex];				
+		let cell = this.#grid[pickIndex];
 		cell.collapsed = true;								// collapse cell
 
-		let originalIndex = (cell.y * this.#size) + cell.x;	// get cell's original index
-		this.#grid[originalIndex].collapsed = true;			// update grid at original index
-		this.#uncollapsed.splice(pickIndex, 1);				// remove cell from uncollapsed
+		if(uncollapsedIndex === -1){ console.log("index being annoying")}
+		this.#uncollapsed.splice(uncollapsedIndex, 1);		// remove index from uncollapsed
 
 		return cell;
 	}
@@ -104,6 +106,8 @@ class ConstraintSolver {
 				
 				neighbor.visited = true;
 
+				let prevOptionCount = neighbor.options.length;
+
 				// find valid options for this neighbor by looking at each pattern in cell's options
 				//		and finding which adjacencies are valid for that neighbor
 				let valid = new Set();								// set to prevent duplication
@@ -111,7 +115,7 @@ class ConstraintSolver {
 					// left neighbor's options == cell tile's left adjacencies, etc
 					let pAdj = this.#patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
 					if(!pAdj) continue;								// pattern has no adjacencies in this direction
-					for(let adj of pAdj){		// TODO: try freeing this from a for loop
+					for(let adj of pAdj){		// TODO 2: try freeing this from a for loop 
 						valid.add(adj);	
 					}
 				}
@@ -126,18 +130,14 @@ class ConstraintSolver {
 				if(neighbor.options.length === 1){	// this neighbor is collapsed!
 					neighbor.collapsed = true;
 
-					// TODO: remove this logic from for loop
-					// remove neighbor from this.#uncollapsed
-					for(let i = 0; i < this.#uncollapsed.length; i++){
-						if(this.#uncollapsed[i].x === neighbor.x && this.#uncollapsed[i].y === neighbor.y){
-							this.#uncollapsed.splice(i, 1);
-							break;
-						}
-					}
+					// if neighbor not already collapsed, remove its index from uncollapsed array
+					let ind = this.#uncollapsed.indexOf((neighbor.y * this.#size) + neighbor.x);
+					if(ind !== -1) this.#uncollapsed.splice(ind, 1);
+
 				}
 
 				// add neighbor to propagation stack
-				if(neighbor.options.length < this.#patternOptions.length){
+				if(neighbor.options.length < prevOptionCount){//this.#patternOptions.length){
 					stack.push(neighbor);
 				} 
 			}
