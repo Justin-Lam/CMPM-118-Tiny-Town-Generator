@@ -1,23 +1,21 @@
 /*
-	This file contains the functions used to create PATHFINDER_GROUND and PATHFINDER_STRUCTURES in constants.js
-	It is being save in case it's ever needed again
-	:3
+	Used to extract the tileID matrices from a tilemap's layers
 */
-
 class TilemapDataMiner extends Phaser.Scene
 {
 	GRASSY_TILES = [1, 2, 3];
 	INPUT_TILE_WIDTH = 16;
 	INPUT_MAP_HEIGHT = 25;
 	INPUT_MAP_WIDTH = 40;
+
 	constructor() {
-		super("dataMinerScene");
+		super("tilemapDataMinerScene");
 	}
 
 	preload() {
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");						// packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");		// tilemap in JSON
+		this.load.image("tilemap_tiles", "tilemap_packed.png");
+		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
 	}
 
 	create()
@@ -36,7 +34,6 @@ class TilemapDataMiner extends Phaser.Scene
 		this.printMatrix(this.inputStructuresMatrix);
 	}
 
-	/*
 	// Making the Pathfinder map to feed into WFC
 	getInputMap() {
 		// Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
@@ -55,7 +52,8 @@ class TilemapDataMiner extends Phaser.Scene
         this.treesLayer.setVisible(false);
         this.housesLayer.setVisible(false);
 	}
-
+	
+	/*
 	getGroundMatrix() {
 		let matrix = [];
 		let nonGrassyTiles = [];

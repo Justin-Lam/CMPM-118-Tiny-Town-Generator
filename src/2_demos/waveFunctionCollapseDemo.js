@@ -1,6 +1,4 @@
-class wfcDemo extends Phaser.Scene
-{
-	// Tile IDs
+class WaveFunctionCollapseDemo extends Phaser.Scene {
 	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
 	BLANK = 195;
 	WATER = 56;
@@ -75,7 +73,7 @@ class wfcDemo extends Phaser.Scene
 	outputSize = 10;
 
 	constructor() {
-		super("wfcDemoScene");
+		super("waveFunctionCollapseDemoScene");
 	}
 
 	preload() {
