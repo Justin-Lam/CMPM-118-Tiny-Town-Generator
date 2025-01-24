@@ -79,7 +79,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 
 	create()
 	{
-		this.setupInput();
+		this.setupControls();
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
@@ -164,7 +164,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 		this.pattern1Map.createLayer(0, this.tileset, 800 + dx, 300 + dy);
 	}
 
-	setupInput() {
+	setupControls() {
 		this.prevImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 		this.nextImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.decreaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);

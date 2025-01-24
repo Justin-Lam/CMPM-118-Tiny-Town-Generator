@@ -3,7 +3,8 @@
 */
 class TilemapDataMiner extends Phaser.Scene
 {
-	GRASSY_TILES = [1, 2, 3];
+	tilemapLayers = [];
+	currentTilemapIndex = 0;
 
 	constructor() {
 		super("tilemapDataMinerScene");
@@ -26,25 +27,16 @@ class TilemapDataMiner extends Phaser.Scene
 			"Trees-n-Bushes",
 			"Houses-n-Fences"
 		];
+		const tileWidth = 16;
+		const tileHeight = 16;
+
 
 		this.createTilemap(key, width, height, layerNames);
-		// getGroundAndStructuresData
-		// printMatrix(this.groundData);
-		// printMatrix(this.structuresData);
-
-		/*
-		this.inputGroundMatrix;
-		let nonGrassyTiles = this.getGroundMatrix();
-		console.log(this.inputGroundMatrix);
-
-		this.inputStructuresMatrix;
-		this.getStructuresMatrix(nonGrassyTiles);
-		console.log(this.inputStructuresMatrix);
-
-		this.matrixVisualization();
-		this.printMatrix(this.inputGroundMatrix);
-		this.printMatrix(this.inputStructuresMatrix);
-		*/
+		this.getGroundAndStructuresData(width, height);
+		this.printMatrix(this.groundData);
+		this.printMatrix(this.structuresData);
+		this.createGroundAndStructuresTilemaps(tileWidth, tileHeight);
+		this.setupControls();
 	}
 
 	/**
@@ -55,89 +47,159 @@ class TilemapDataMiner extends Phaser.Scene
 	 */
 	createTilemap(key, width, height, layerNames) {
 		this.tilemap = this.add.tilemap(key, 16, 16, width, height);
-		this.tileset = this.tilemap.addTilesetImage("tinyTown", "tilemap_tiles");
+		this.tileset = this.tilemap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
 		this.layers = [];
 		for (const name of layerNames) {
 			this.layers.push(this.tilemap.createLayer(name, this.tileset, 0, 0));
 		}
+		this.tilemapLayers.push(this.layers);
 	}
 
-	/*
-	getGroundMatrix() {
-		let matrix = [];
-		let nonGrassyTiles = [];
+	/**
+	 * @param {number} width 
+	 * @param {number} height 
+	 */
+	getGroundAndStructuresData(width, height) {
+		this.groundData = [];
+		this.structuresData = [];
+		for (let y = 0; y < height; y++) {
+			this.groundData[y] = [];
+			this.structuresData[y] = [];
+			for (let x = 0; x < width; x++) {
+				this.groundData[y][x] = -1;
+				this.structuresData[y][x] = -1;
+			}
+		}
 
-		for (let y = 0; y < this.INPUT_MAP_HEIGHT; y++) {
-			matrix[y] = [];
-			nonGrassyTiles[y] = [];
-			for (let x = 0; x < this.INPUT_MAP_WIDTH; x++) {
-				let tileIndex = this.groundLayer.layer.data[y][x].index;
-				if (this.GRASSY_TILES.includes(tileIndex)) {
-					matrix[y][x] = tileIndex;
-				}
-				else {
-					nonGrassyTiles[y][x] = tileIndex;
-					matrix[y][x] = 1;
+		// Fill in definite tiles
+		for (const layer of this.layers) {
+			const data = layer.layer.data;
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					const id = data[y][x].index;
+					if (id < 1) {
+						continue;
+					}
+					else if ([1, 2, 3].includes(id)) {	// id is 1, 2, or 3
+						this.groundData[y][x] = id;
+					}
+					else {
+						this.structuresData[y][x] = id;
+					}
 				}
 			}
 		}
 
-		this.inputGroundMatrix = matrix;
-		return nonGrassyTiles;
-	}
-
-	getStructuresMatrix(nonGrassyTiles) {
-		let matrix = [];
-
-		for (let y = 0; y < this.INPUT_MAP_HEIGHT; y++) {
-			matrix[y] = [];
-			for (let x = 0; x < this.INPUT_MAP_WIDTH; x++) {
-				matrix[y][x] = 0; // 0 = blank
-
-				if (this.treesLayer.layer.data[y][x].index > 0) {
-					matrix[y][x] = this.treesLayer.layer.data[y][x].index;
-				}
-
-				if (this.housesLayer.layer.data[y][x].index > 0) {
-					matrix[y][x] = this.housesLayer.layer.data[y][x].index;
-				}
-
-				if (nonGrassyTiles[y][x] > 0) {
-					matrix[y][x] = nonGrassyTiles[y][x];
+		// Fill in missing grass tiles
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				const id = this.groundData[y][x];
+				if (id < 1) {
+					this.groundData[y][x] = this.getWeightedRandomGrassID();
 				}
 			}
 		}
-
-		this.inputStructuresMatrix = matrix;
 	}
 
-	matrixVisualization() { // For testing the get matrices functions
-		const groundMap = this.make.tilemap({
-			data: this.inputGroundMatrix,
-			tileWidth: this.INPUT_TILE_WIDTH,
-			tileHeight: this.INPUT_TILE_WIDTH
-		});
-		this.groundMapLayer = groundMap.createLayer(0, this.tileset, 0, 0);
+	getWeightedRandomGrassID() {
+		// used https://dev.to/jacktt/understanding-the-weighted-random-algorithm-581p
+		const ids = [1,	2, 3];
+		const weights = [45, 45, 10];	// 45%, 45%, 10% - this is the actual ratio from the pathfinder map
+		let total = 0;
+		for (const weight of weights) {
+			total += weight;
+		}
 
-		const structuresMap = this.make.tilemap({
-			data: this.inputStructuresMatrix,
-			tileWidth: this.INPUT_TILE_WIDTH,
-			tileHeight: this.INPUT_TILE_WIDTH
-		});
-		this.structuresMapLayer = structuresMap.createLayer(0, this.tileset, 0, 0);
+		const random = Math.random() * total;
+
+		let cursor = 0;
+		for (let i = 0; i < weights.length; i++) {
+			cursor += weights[i];
+			if (cursor >= random) {
+				return ids[i];
+			}
+		}
+		throw new Error("Math did not check out");
 	}
 
+	/** @param {number[][]} matrix */
 	printMatrix(matrix) {
-		let matrixString = "[\n";
-		for (let y = 0; y < this.INPUT_MAP_HEIGHT; y++) {
-			matrixString += "["
-			for (let x = 0; x < this.INPUT_MAP_WIDTH; x++) {
-				matrixString = matrixString + matrix[y][x] + ","
+		let result = "[\n";
+		for (const row of matrix) {
+			result += "[";
+			for (const id of row) {
+				result += id + ",";
 			}
-			matrixString += "],\n"
+			result += "],\n";
 		}
-		matrixString += "]"
-		console.log(matrixString);
+		result += "]";
+		console.log(result);
 	}
-	*/
+
+	/**
+	 * @param {number} tileWidth 
+	 * @param {number} tileHeight 
+	 */
+	createGroundAndStructuresTilemaps(tileWidth, tileHeight) {
+		this.groundTilemap = this.make.tilemap({
+			data: this.groundData,
+			tileWidth: tileWidth,
+			tileHeight: tileHeight
+		});
+		this.groundTilemapLayer = this.groundTilemap.createLayer(0, this.tileset, 0, 0);
+		this.groundTilemapLayer.setVisible(false);
+		this.tilemapLayers.push([this.groundTilemapLayer]);
+
+		this.structuresTilemap = this.make.tilemap({
+			data: this.structuresData,
+			tileWidth: tileWidth,
+			tileHeight: tileHeight
+		});
+		this.structuresTilemapLayer = this.structuresTilemap.createLayer(0, this.tileset, 0, 0);
+		this.structuresTilemapLayer.setVisible(false);
+		this.tilemapLayers.push([this.structuresTilemapLayer]);
+	}
+
+	setupControls() {
+		this.prevTilemap_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+		this.nextTilemap_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+
+		this.prevTilemap_Key.on("down", () => this.changeTilemap(-1));
+		this.nextTilemap_Key.on("down", () => this.changeTilemap(1));
+
+		const controls = `
+		<h2>Controls</h2>
+		Change Tilemap: LEFT/RIGHT
+		`;
+		document.getElementById("description").innerHTML = controls;
+	}
+
+	/** @param {number} di delta index */
+	changeTilemap(di) {
+		for (const layer of this.tilemapLayers[this.currentTilemapIndex]) {
+			layer.setVisible(false);
+		}
+
+		let i = this.currentTilemapIndex;
+		const len = this.tilemapLayers.length;
+		this.currentTilemapIndex = this.changeIndexWrapping(i, len, di);
+		for (const layer of this.tilemapLayers[this.currentTilemapIndex]) {
+			layer.setVisible(true);
+		}
+
+		i = this.currentTilemapIndex;
+		for (const layer of this.tilemapLayers[this.changeIndexWrapping(i, len, di)]) {
+			layer.setVisible(false);
+		}
+	}
+
+	/**
+	 * @param {number} i current index
+	 * @param {number} len length of array
+	 * @param {number} di delta index
+	 * @returns {number} the new index
+	 */
+	changeIndexWrapping(i, len, di) {
+		return (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
+	}
 }
