@@ -110,6 +110,8 @@ class ImageProcessorDemo extends Phaser.Scene
 	}
 
 	showAdjacency() {
+		return;
+
 		if (this.ip.adjacencies.length === 0) {
 			if (this.pattern1Map) {
 				this.pattern1Map.destroy();
