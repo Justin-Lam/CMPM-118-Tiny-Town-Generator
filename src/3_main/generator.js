@@ -1,8 +1,8 @@
 class Generator extends Phaser.Scene
 {
 	ip = new ImageProcessor();
-	outputSize = 5;
-	N = 2;
+	outputSize = 9;
+	N = 3;
 	structRange = 2;
 
 	constructor() {

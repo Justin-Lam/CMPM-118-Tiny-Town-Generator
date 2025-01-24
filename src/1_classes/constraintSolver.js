@@ -1,4 +1,4 @@
-// TODO:	- max attempts
+// TODO:
 // 			- replace recursion with iteration
 //			- backtracking ?
 
@@ -110,17 +110,22 @@ class ConstraintSolver {
 
 				// find valid options for this neighbor by looking at each pattern in cell's options
 				//		and finding which adjacencies are valid for that neighbor
-				let valid = new Set();								// set to prevent duplication
-				for(let cellOption of cell.options){
+				let valid = [];
+
+				// TODO: maybe try to get rid of this for loop? idk how much that would help tho tbh
+				//	cell.options.length can get pretty long so i think it may help a little!
+				let patternAdjs = this.#patternAdjs;
+				for (let i = 0; i < cell.options.length; i++) {					
 					// left neighbor's options == cell tile's left adjacencies, etc
-					let pAdj = this.#patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
-					if(!pAdj) continue;								// pattern has no adjacencies in this direction
-					for(let adj of pAdj){		// TODO 2: try freeing this from a for loop 
-						valid.add(adj);	
-					}
+					let cellOption = cell.options[i];
+					let pAdj = patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
+					if(pAdj) valid.push(...pAdj);
 				}
+
 				// update neighbor's options to be whichever are options are in valid[]
-				let newOptions = valid.intersection(new Set(neighbor.options));
+				let validSet = new Set(valid);							// using sets to prevent duplicates
+				let neighborSet = new Set(neighbor.options);
+				let newOptions = validSet.intersection(neighborSet);
 				neighbor.options = [...newOptions];
 
 				if(neighbor.options.length === 0){	// gridlock :(
@@ -181,22 +186,18 @@ class ConstraintSolver {
 		for(let y = 0; y < size; y++){
 			for(let x = 0; x < size; x++){
 				let index = (y * size) + x;
-				if(!options){ 
-					result[index] = null;
-				} else {
-					result[index] = { 
-						x: x, y: y,
-						collapsed: false,
-						visited: false,		// flag for propagation
-						options: options,	// init every cell with all possible options
-						neighbors: {		// indeces of neighboring cells
-							down:		(y > 0) 		? ((y - 1) * size) + x : null,
-							up:	(y < size - 1) 	? ((y + 1) * size) + x : null,
-							right:	(x > 0) 		? (y * size) + (x - 1) : null,
-							left:	(x < size - 1) 	? (y * size) + (x + 1) : null
-						}
-					};	
-				}	
+				result[index] = { 
+					x: x, y: y,
+					collapsed: false,
+					visited: false,		// flag for propagation
+					options: options,	// init every cell with all possible options
+					neighbors: {		// indeces of neighboring cells
+						down:	(y > 0) 		? ((y - 1) * size) + x : null,
+						up:		(y < size - 1) 	? ((y + 1) * size) + x : null,
+						right:	(x > 0) 		? (y * size) + (x - 1) : null,
+						left:	(x < size - 1) 	? (y * size) + (x + 1) : null
+					}
+				};	
 			}
 		}
 
