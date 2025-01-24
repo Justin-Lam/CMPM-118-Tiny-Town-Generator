@@ -20,7 +20,22 @@ class TilemapDataMiner extends Phaser.Scene
 
 	create()
 	{
-		this.getInputMap();
+		// ENTER DATA HERE
+		const key = "three-farmhouses";
+		const width = 40;
+		const height = 25;
+		const layerNames = [
+			"Ground-n-Walkways",
+			"Trees-n-Bushes",
+			"Houses-n-Fences"
+		];
+
+		this.createTilemap(key, width, height, layerNames);
+		// getGroundAndStructuresData
+		// printMatrix(this.groundData);
+		// printMatrix(this.structuresData);
+
+		/*
 		this.inputGroundMatrix;
 		let nonGrassyTiles = this.getGroundMatrix();
 		console.log(this.inputGroundMatrix);
@@ -32,27 +47,24 @@ class TilemapDataMiner extends Phaser.Scene
 		this.matrixVisualization();
 		this.printMatrix(this.inputGroundMatrix);
 		this.printMatrix(this.inputStructuresMatrix);
+		*/
 	}
 
-	// Making the Pathfinder map to feed into WFC
-	getInputMap() {
-		// Create a new tilemap which uses 16x16 tiles, and is 40 tiles wide and 25 tiles tall
-		this.multiLayerMap = this.add.tilemap("three-farmhouses", this.INPUT_TILE_WIDTH, this.INPUT_TILE_WIDTH, this.INPUT_MAP_HEIGHT, this.INPUT_MAP_WIDTH);
-
-		// Add a tileset to the map
-		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-
-		// Create the layers
-		this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-		this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-		this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
-
-		// Hide the layers
-		this.groundLayer.setVisible(false);
-        this.treesLayer.setVisible(false);
-        this.housesLayer.setVisible(false);
+	/**
+	 * @param {string} key 
+	 * @param {number} width 
+	 * @param {number} height
+	 * @param {string[]} layerNames
+	 */
+	createTilemap(key, width, height, layerNames) {
+		this.tilemap = this.add.tilemap(key, 16, 16, width, height);
+		this.tileset = this.tilemap.addTilesetImage("tinyTown", "tilemap_tiles");
+		this.layers = [];
+		for (const name of layerNames) {
+			this.layers.push(this.tilemap.createLayer(name, this.tileset, 0, 0));
+		}
 	}
-	
+
 	/*
 	getGroundMatrix() {
 		let matrix = [];

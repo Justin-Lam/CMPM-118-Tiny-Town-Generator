@@ -123,7 +123,7 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 
 		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
 		this.wfc_Key.on("down", () => {
-			let myMap = new WFC(this.ip, this.outputSize).generated;
+			let myMap = new ConstraintSolver(this.ip, this.outputSize).generated;
             this.showImage(myMap);
 		});
 
