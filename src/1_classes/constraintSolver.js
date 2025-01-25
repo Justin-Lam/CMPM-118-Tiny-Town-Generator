@@ -1,36 +1,29 @@
-// TODO:
-// 			- replace recursion with iteration
-//			- backtracking ?
-
-// this class handles all of the heavy lifting for generating a WFC grid
 // the only parameter available outside of the class is the resulting grid
 class ConstraintSolver {
 	// private properties
 	#ip;
 	#size;
-	#patternAdjs;
 	#grid;
 	#patternOptions;
 	#uncollapsed;
 	#attemptsRemaining;
+	#stateStack;
 
 	constructor(ip, size) {
 		this.#attemptsRemaining = 8000;
 
 		this.#ip = ip;
 		this.#size = size;
-
 		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
 
-		// reorganize this.#ip.adjacencies by pattern and direction
-		//		this will help in the propagation phase
-		this.#patternAdjs = this.#adjByPattern(this.#patternOptions);
+		this.#stateStack = []; 
 
+		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
 		if(this.#run()){
 			if(this.#attemptsRemaining > 0){ 
 				console.log("WFC finished!");
 
-				console.log(this.#patternAdjs)
 				this.#printGrid();
 
 				// output accesible outside of class
@@ -46,110 +39,128 @@ class ConstraintSolver {
 	/*** MAIN WFC FUNCTIONS ***/
 
 	// run() is the command center of the WFC algorithm
-	#run(){
+	#run() {
 		console.log("initializing WFC...");
-		this.#attemptsRemaining--;
 
-		// initialize cell grid 
-		// 		each cell starts with all patterns as its options (uncollapsed)
-		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+		//this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+		//this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
+		//this.#stateStack = []; // Stack to store states for backtracking
 
-		// an array representing the indeces of uncollapsed cells
-		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
+		while (this.#uncollapsed.length > 0) {
+			this.#attemptsRemaining--;
+			if(this.#attemptsRemaining <= 0) { return false; }
 
-		// loops until WFC is completed
-		let cont = true; 								// bool to track whether to continue WFC	
-		while(this.#uncollapsed.length > 0 && this.#attemptsRemaining > 0){
-			let cell = this.#observe();					// picks a random uncollapsed cell
-			let pick = this.#randomIndex(cell.options);	// pick one option of observed's options
+			// state save for backtracking
+			this.#stateStack.push({
+				grid: JSON.parse(JSON.stringify(this.#grid)), 
+				uncollapsed: [...this.#uncollapsed],      
+			});
+			
+			const cell = this.#observe();
+			const pick = this.#randomIndex(cell.options);
+	
+			cell.options = [pick];
+			this.#resetVisitFlag();
+	
+			const result = this.#propagate(cell);
+			if (!result.success) {
+				if (this.#stateStack.length > 0) {		// backtrack
+					console.log("Backtracking...")
+					const prevState = this.#stateStack.pop();
+					this.#grid = prevState.grid;
+					this.#uncollapsed = prevState.uncollapsed;
 
-			cell.options = [cell.options[pick]];
-
-			this.#resetVisitFlag();						// sets all visit flags in grid to false
-			cont = this.#propagate(cell);
-
-			if(!cont) this.#run();						// false indicates WFC gridlock; restart
+					/*
+					for (const cell of result.changes) {
+						cell.options = [...cell.prevOptions]; // Restore previous options
+						cell.collapsed = false;
+					}
+					*/
+				} else {
+					console.log("Restarting...");
+					this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+					this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
+				}			
+			}
 		}
-
-		return true; // WFC completed! wahoo!!
+	
+		return this.#uncollapsed.length === 0;
 	}
+	
 
 	// observe phase -- picks a random uncollapsed cell
-	//		TODO: add functionality to get minimun entropy
-	#observe(){
-		// get the index of an uncollapsed cell
-		let uncollapsedIndex = this.#randomIndex(this.#uncollapsed);	
-
-		let pickIndex = this.#uncollapsed[uncollapsedIndex];				
-		let cell = this.#grid[pickIndex];
-		cell.collapsed = true;								// collapse cell
-
-		if(uncollapsedIndex === -1){ console.log("index being annoying")}
-		this.#uncollapsed.splice(uncollapsedIndex, 1);		// remove index from uncollapsed
-
+	#observe() {
+		let minEntropy = Infinity;
+		let bestIndex = null;
+	
+		for(const index of this.#uncollapsed) {
+			const entropy = this.#grid[index].options.length;
+			if (entropy < minEntropy) {
+				minEntropy = entropy;
+				bestIndex = index;
+			}
+		}
+	
+		const cell = this.#grid[bestIndex];
+		cell.collapsed = true;			// collapse cell
+		this.#uncollapsed.splice(this.#uncollapsed.indexOf(bestIndex), 1);	// remove cell from 
+	
 		return cell;
 	}
+	
 
 	// propagate startCell's option choice to all other cells
-	#propagate(startCell){
-		const stack = [startCell]; 		// use a stack to track which cells' options need to be propagated
-		while (stack.length > 0) {
+	#propagate(startCell) {
+		const stack = [startCell]; 	// use a stack to track which cells' options need to be propagated
+		const history = [];			// save state for backtracking
+	
+		// update all of cell's neighbors
+		while(stack.length > 0) {
 			const cell = stack.pop();
-
-			// update all of cell's neighbors
-			for(let dir in cell.neighbors){
-				let neighborAddress = cell.neighbors[dir];
-				if(neighborAddress === null){ continue; }			// cell doesnt have a neighbor in this direction
-				
-				let neighbor = this.#grid[neighborAddress]; 
+			cell.prevOptions = cell.options;
+			history.push(cell); // save state
+	
+			for(let dir in cell.neighbors) {
+				const neighborAddress = cell.neighbors[dir];
+				if(neighborAddress === null) continue;				// cell doesnt have a neighbor in this direction
+	
+				const neighbor = this.#grid[neighborAddress];
 				if(neighbor.visited === true){ continue; }			// cell has already been visited in this propagation
-				
+	
 				neighbor.visited = true;
-
-				let prevOptionCount = neighbor.options.length;
-
+	
 				// find valid options for this neighbor by looking at each pattern in cell's options
 				//		and finding which adjacencies are valid for that neighbor
-				let valid = [];
-
-				// TODO: maybe try to get rid of this for loop? idk how much that would help tho tbh
-				//	cell.options.length can get pretty long so i think it may help a little!
-				let patternAdjs = this.#patternAdjs;
-				for (let i = 0; i < cell.options.length; i++) {					
-					// left neighbor's options == cell tile's left adjacencies, etc
-					let cellOption = cell.options[i];
-					let pAdj = patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
-					if(pAdj) valid.push(...pAdj);
+				const prevOptions = new Set(neighbor.options);		// using sets to prevent duplicates
+				const valid = new Set();
+				for(const option of cell.options) {
+					const pAdjs = this.#ip.adjacencies[option]?.[dir] || [];	// the adjacencies for this pattern
+					pAdjs.forEach((adj) => valid.add(adj));
 				}
 
-				// update neighbor's options to be whichever are options are in valid[]
-				let validSet = new Set(valid);							// using sets to prevent duplicates
-				let neighborSet = new Set(neighbor.options);
-				let newOptions = validSet.intersection(neighborSet);
-				neighbor.options = [...newOptions];
+				// update neighbor's options to be whichever are options are in valid
+				neighbor.options = [...prevOptions].filter((opt) => valid.has(opt));
 
-				if(neighbor.options.length === 0){	// gridlock :(
-					return false;					// will trigger a restart
+				if(neighbor.options.length === 0) {	// gridlock :(
+					return { success: false, changes: history};
 				}
-
-				if(neighbor.options.length === 1){	// this neighbor is collapsed!
+	
+				if(neighbor.options.length === 1) {	// this neighbor is collapsed!
 					neighbor.collapsed = true;
 
 					// if neighbor not already collapsed, remove its index from uncollapsed array
-					let ind = this.#uncollapsed.indexOf((neighbor.y * this.#size) + neighbor.x);
+					const ind = this.#uncollapsed.indexOf(neighborAddress);
 					if(ind !== -1) this.#uncollapsed.splice(ind, 1);
-
 				}
-
+	
 				// add neighbor to propagation stack
-				if(neighbor.options.length < prevOptionCount){//this.#patternOptions.length){
-					stack.push(neighbor);
-				} 
+				stack.push(neighbor);
 			}
 		}
-		
-		return true; // no deadlocks detected, done with this propagation
+	
+		return { success: true, changes: history};	// no deadlocks detected, done with this propagation
 	}
+	
 
 	// conversion function to get the top left tile of every pattern
 	#patternsToTiles(){
@@ -192,10 +203,10 @@ class ConstraintSolver {
 					visited: false,		// flag for propagation
 					options: options,	// init every cell with all possible options
 					neighbors: {		// indeces of neighboring cells
-						down:	(y > 0) 		? ((y - 1) * size) + x : null,
-						up:		(y < size - 1) 	? ((y + 1) * size) + x : null,
-						right:	(x > 0) 		? (y * size) + (x - 1) : null,
-						left:	(x < size - 1) 	? (y * size) + (x + 1) : null
+						/* up	 */ 0:	(y < size - 1) 	? ((y + 1) * size) + x : null,
+						/* down	 */	1:	(y > 0) 		? ((y - 1) * size) + x : null,
+						/* left  */	2:	(x < size - 1) 	? (y * size) + (x + 1) : null,
+						/* right */	3:	(x > 0) 		? (y * size) + (x - 1) : null,
 					}
 				};	
 			}
@@ -205,11 +216,8 @@ class ConstraintSolver {
 	}
 	
 	// returns a random index from the given array
-	#randomIndex(arr){
-		let max = arr.length;
-		let pick = Math.floor(Math.random() * max);
-
-		return pick;
+	#randomIndex(arr) {
+		return Math.floor(Math.random() * arr.length);
 	}
 
 	// sorts ip adjacencies by pattern and direction
