@@ -8,7 +8,6 @@ class ConstraintSolver {
 	// private properties
 	#ip;
 	#size;
-	#patternAdjs;
 	#grid;
 	#patternOptions;
 	#uncollapsed;
@@ -22,15 +21,10 @@ class ConstraintSolver {
 
 		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
 
-		// reorganize this.#ip.adjacencies by pattern and direction
-		//		this will help in the propagation phase
-		this.#patternAdjs = this.#adjByPattern(this.#patternOptions);
-
 		if(this.#run()){
 			if(this.#attemptsRemaining > 0){ 
 				console.log("WFC finished!");
 
-				console.log(this.#patternAdjs)
 				this.#printGrid();
 
 				// output accesible outside of class
@@ -84,7 +78,6 @@ class ConstraintSolver {
 		let cell = this.#grid[pickIndex];
 		cell.collapsed = true;								// collapse cell
 
-		if(uncollapsedIndex === -1){ console.log("index being annoying")}
 		this.#uncollapsed.splice(uncollapsedIndex, 1);		// remove index from uncollapsed
 
 		return cell;
@@ -114,7 +107,7 @@ class ConstraintSolver {
 
 				// TODO: maybe try to get rid of this for loop? idk how much that would help tho tbh
 				//	cell.options.length can get pretty long so i think it may help a little!
-				let patternAdjs = this.#patternAdjs;
+				let patternAdjs = this.#ip.adjacencies;
 				for (let i = 0; i < cell.options.length; i++) {					
 					// left neighbor's options == cell tile's left adjacencies, etc
 					let cellOption = cell.options[i];
@@ -192,10 +185,10 @@ class ConstraintSolver {
 					visited: false,		// flag for propagation
 					options: options,	// init every cell with all possible options
 					neighbors: {		// indeces of neighboring cells
-						down:	(y > 0) 		? ((y - 1) * size) + x : null,
-						up:		(y < size - 1) 	? ((y + 1) * size) + x : null,
-						right:	(x > 0) 		? (y * size) + (x - 1) : null,
-						left:	(x < size - 1) 	? (y * size) + (x + 1) : null
+						/* up	 */ 0:	(y < size - 1) 	? ((y + 1) * size) + x : null,
+						/* down	 */	1:	(y > 0) 		? ((y - 1) * size) + x : null,
+						/* left  */	2:	(x < size - 1) 	? (y * size) + (x + 1) : null,
+						/* right */	3:	(x > 0) 		? (y * size) + (x - 1) : null,
 					}
 				};	
 			}
