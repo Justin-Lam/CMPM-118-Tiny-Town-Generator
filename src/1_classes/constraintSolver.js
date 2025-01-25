@@ -18,9 +18,10 @@ class ConstraintSolver {
 
 		this.#ip = ip;
 		this.#size = size;
-
 		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
 
+		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
 		if(this.#run()){
 			if(this.#attemptsRemaining > 0){ 
 				console.log("WFC finished!");
@@ -40,33 +41,29 @@ class ConstraintSolver {
 	/*** MAIN WFC FUNCTIONS ***/
 
 	// run() is the command center of the WFC algorithm
-	#run(){
+	#run() {
 		console.log("initializing WFC...");
-		this.#attemptsRemaining--;
-
-		// initialize cell grid 
-		// 		each cell starts with all patterns as its options (uncollapsed)
-		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
-
-		// an array representing the indeces of uncollapsed cells
-		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
-
-		// loops until WFC is completed
-		let cont = true; 								// bool to track whether to continue WFC	
-		while(this.#uncollapsed.length > 0 && this.#attemptsRemaining > 0){
-			let cell = this.#observe();					// picks a random uncollapsed cell
-			let pick = this.#randomIndex(cell.options);	// pick one option of observed's options
-
+		while (this.#uncollapsed.length > 0) {
+			this.#attemptsRemaining--;
+			if(this.#attemptsRemaining <= 0) { return false; }
+	
+			const cell = this.#observe();
+			const pick = this.#randomIndex(cell.options);
+	
 			cell.options = [cell.options[pick]];
-
-			this.#resetVisitFlag();						// sets all visit flags in grid to false
-			cont = this.#propagate(cell);
-
-			if(!cont) this.#run();						// false indicates WFC gridlock; restart
+			this.#resetVisitFlag();
+	
+			const success = this.#propagate(cell);
+			if (!success) {
+				console.log("Gridlock detected, restarting...");
+				this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+				this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
+			}
 		}
-
-		return true; // WFC completed! wahoo!!
+	
+		return this.#uncollapsed.length === 0;
 	}
+	
 
 	// observe phase -- picks a random uncollapsed cell
 	//		TODO: add functionality to get minimun entropy
