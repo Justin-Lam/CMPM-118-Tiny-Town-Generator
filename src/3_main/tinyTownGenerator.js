@@ -1,6 +1,6 @@
 class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
-	outputSize = 9;
+	outputSize = 7;
 	N = 3;
 	structRange = 2;
 
@@ -33,16 +33,18 @@ class TinyTownGenerator extends Phaser.Scene {
 
 			// Run wfc on the structures matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new structures layer
-			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
+			this.ip.process(MAP1_STRUCTURES, this.N); // img processor
 			console.log(this.ip);
 			this.structuresLayer = new ConstraintSolver(this.ip, this.outputSize).generated;
 			this.showImage(this.structuresLayer);
 
 			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
+			/*
 			this.wm = new Wfdm(this.structuresLayer, 5, 5, this.structRange);
 			this.wm.printWorldFacts();
 			this.paragraphDescription = this.wm.getDescriptionParagraph();
 			console.log(this.paragraphDescription);
+			*/
 		});
 		// Display the ground and structures layer and take a screenshot
 
