@@ -1,5 +1,7 @@
-// S to screenshot
-
+/*
+	S to screenshot
+	Only supported by Chrome and Edge
+*/
 async function takeScreenshot() {
 	// Create a file handle in the chosen directory
 	const fileHandle = await window.showSaveFilePicker({

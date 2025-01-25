@@ -1,18 +1,17 @@
-class Generator extends Phaser.Scene
-{
+class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
 	outputSize = 9;
 	N = 3;
 	structRange = 2;
 
 	constructor() {
-		super("generatorScene");
+		super("tinyTownGeneratorScene");
 	}
 
 	preload() {
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");						// packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");		// tilemap in JSON
+		this.load.image("tilemap_tiles", "tilemap_packed.png");
+		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
 	}
 
 	create()

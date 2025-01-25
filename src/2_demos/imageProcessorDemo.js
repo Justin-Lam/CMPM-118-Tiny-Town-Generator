@@ -1,6 +1,4 @@
-class ImageProcessorDemo extends Phaser.Scene
-{
-	// Tile IDs
+class ImageProcessorDemo extends Phaser.Scene {
 	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
 	BLANK = 195;
 	WATER = 56;
@@ -63,9 +61,9 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.IMAGE3
 	];
 
-	ZOOM = 0.5;
 
 	ip = new ImageProcessor();
+	adjacencies = [];	// this.ip.adjacencies but converted to a form that the code in this scene can use
 	currentImageIndex = 0;
 	N = 2;
 	currentAdjacencyIndex = 0;
@@ -81,16 +79,31 @@ class ImageProcessorDemo extends Phaser.Scene
 
 	create()
 	{
-		this.setupInput();
+		this.setupControls();
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
+		this.updateAdjacencies();
 		this.showImage(image);
 		this.showAdjacency();
 		console.log(this.ip);
+	}
 
-		this.cameras.main.setZoom(this.ZOOM);
-		this.cameras.main.setBounds(0, 0, 1280, 800);
+	updateAdjacencies() {
+		/*
+			Set this.adjacencies to this.ip.adjacencies
+			But converted into the form: [ [patternAIndex, patternBIndex, directionIndex], ... ]
+			This function therefore needs to be update every time ip.process() is called
+			This function serves as a quick work around to make the new ip.adjacencies form work with the current code in this scene
+		*/
+		this.adjacencies = [];
+		for (let i = 0; i < this.ip.adjacencies.length; i++) {
+			for (let k = 0; k < DIRECTIONS.length; k++) {
+				for (const j of this.ip.adjacencies[i][k]) {
+					this.adjacencies.push([i, j, k]);	// [pattern1Index, pattern2Index, directionIndex]
+				}
+			}
+		}
 	}
 
 	/** @param {number[][]} image */
@@ -110,7 +123,7 @@ class ImageProcessorDemo extends Phaser.Scene
 	}
 
 	showAdjacency() {
-		if (this.ip.adjacencies.length === 0) {
+		if (this.adjacencies.length === 0) {
 			if (this.pattern1Map) {
 				this.pattern1Map.destroy();
 			}
@@ -120,7 +133,7 @@ class ImageProcessorDemo extends Phaser.Scene
 			return;
 		}
 
-		const adjacency = this.ip.adjacencies[this.currentAdjacencyIndex];
+		const adjacency = this.adjacencies[this.currentAdjacencyIndex];
 		const pattern1Index = adjacency[0];
 		const pattern2Index = adjacency[1];
 		const directionIndex = adjacency[2];
@@ -151,13 +164,13 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.pattern1Map.createLayer(0, this.tileset, 800 + dx, 300 + dy);
 	}
 
-	setupInput() {
+	setupControls() {
 		this.prevImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 		this.nextImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.decreaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
 		this.increaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
-		this.prevAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-		this.nextAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+		this.prevAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.COMMA);
+		this.nextAdjacency_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PERIOD);
 
 		this.prevImage_Key.on("down", () => this.changeImage(-1));
 		this.nextImage_Key.on("down", () => this.changeImage(1));
@@ -170,7 +183,7 @@ class ImageProcessorDemo extends Phaser.Scene
 		<h2>Controls (open console recommended)</h2>
 		Change Image: UP/DOWN <br>
 		Change N: LEFT/RIGHT <br>
-		Change Adjacency: W/S
+		Change Adjacency: < / >
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}
@@ -185,6 +198,7 @@ class ImageProcessorDemo extends Phaser.Scene
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
+		this.updateAdjacencies();
 		this.showImage(image);
 		this.showAdjacency();
 
@@ -224,6 +238,7 @@ class ImageProcessorDemo extends Phaser.Scene
 		this.currentAdjacencyIndex = 0;
 
 		this.ip.process(image, this.N);
+		this.updateAdjacencies();
 		this.showAdjacency();
 
 		console.log("N = " + this.N);
@@ -232,14 +247,14 @@ class ImageProcessorDemo extends Phaser.Scene
 
 	/** @param {number} di delta index, must be -1 or 1 */
 	changeAdjacency(di) {
-		if (this.ip.adjacencies.length === 0) {
+		if (this.adjacencies.length === 0) {
 			console.log("No adjacencies to view");
 			return;
 		}
 		const i = this.currentAdjacencyIndex;
-		const len = this.ip.adjacencies.length;
+		const len = this.adjacencies.length;
 		this.currentAdjacencyIndex = (i + di + (di<0 ? len : 0)) % len;	// got formula from https://banjocode.com/post/javascript/iterate-array-with-modulo
 		this.showAdjacency();
-		console.log("Now viewing adjacency " + (this.currentAdjacencyIndex + 1))	// didn't feel like doing 0 indexing
+		console.log("Now viewing adjacency " + (this.currentAdjacencyIndex + 1) + "/" + len)	// didn't feel like doing 0 indexing
 	}
 }

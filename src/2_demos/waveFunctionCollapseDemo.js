@@ -1,6 +1,4 @@
-class wfcDemo extends Phaser.Scene
-{
-	// Tile IDs
+class WaveFunctionCollapseDemo extends Phaser.Scene {
 	// C = "center", BR = "bottom right", LM = "left middle", TL = "top left", etc.
 	BLANK = 195;
 	WATER = 56;
@@ -75,7 +73,7 @@ class wfcDemo extends Phaser.Scene
 	outputSize = 10;
 
 	constructor() {
-		super("wfcDemoScene");
+		super("waveFunctionCollapseDemoScene");
 	}
 
 	preload() {
@@ -85,7 +83,7 @@ class wfcDemo extends Phaser.Scene
 
 	create()
 	{
-		this.setupInput();
+		this.setupControls();
 
 		const image = this.IMAGES[this.currentImageIndex];
 		this.ip.process(image, this.N);
@@ -112,7 +110,7 @@ class wfcDemo extends Phaser.Scene
 		this.imageMap.createLayer(0, this.tileset, 0, 0);
 	}
 
-	setupInput() {
+	setupControls() {
 		this.prevImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 		this.nextImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.decreaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
@@ -125,7 +123,7 @@ class wfcDemo extends Phaser.Scene
 
 		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
 		this.wfc_Key.on("down", () => {
-			let myMap = new WFC(this.ip, this.outputSize).generated;
+			let myMap = new ConstraintSolver(this.ip, this.outputSize).generated;
             this.showImage(myMap);
 		});
 
