@@ -81,65 +81,60 @@ class ConstraintSolver {
 	}
 
 	// propagate startCell's option choice to all other cells
-	#propagate(startCell){
-		const stack = [startCell]; 		// use a stack to track which cells' options need to be propagated
+	#propagate(startCell) {
+		const stack = [startCell]; 	// use a stack to track which cells' options need to be propagated
+		const history = [];			// save state for backtracking
+	
+		// update all of cell's neighbors
 		while (stack.length > 0) {
 			const cell = stack.pop();
-
-			// update all of cell's neighbors
-			for(let dir in cell.neighbors){
-				let neighborAddress = cell.neighbors[dir];
-				if(neighborAddress === null){ continue; }			// cell doesnt have a neighbor in this direction
-				
-				let neighbor = this.#grid[neighborAddress]; 
+			history.push({ cell, options: [...cell.options] }); // save state
+	
+			for (let dir in cell.neighbors) {
+				const neighborAddress = cell.neighbors[dir];
+				if (neighborAddress === null) continue;				// cell doesnt have a neighbor in this direction
+	
+				const neighbor = this.#grid[neighborAddress];
 				if(neighbor.visited === true){ continue; }			// cell has already been visited in this propagation
-				
+	
 				neighbor.visited = true;
-
-				let prevOptionCount = neighbor.options.length;
-
+	
 				// find valid options for this neighbor by looking at each pattern in cell's options
 				//		and finding which adjacencies are valid for that neighbor
-				let valid = [];
-
-				// TODO: maybe try to get rid of this for loop? idk how much that would help tho tbh
-				//	cell.options.length can get pretty long so i think it may help a little!
-				let patternAdjs = this.#ip.adjacencies;
-				for (let i = 0; i < cell.options.length; i++) {					
-					// left neighbor's options == cell tile's left adjacencies, etc
-					let cellOption = cell.options[i];
-					let pAdj = patternAdjs[cellOption][dir];	// the adjacencies for this pattern (cellOption)
-					if(pAdj) valid.push(...pAdj);
+				const prevOptions = new Set(neighbor.options);		// using sets to prevent duplicates
+				const valid = new Set();
+				for(const option of cell.options) {
+					const pAdjs = this.#ip.adjacencies[option]?.[dir] || [];	// the adjacencies for this pattern
+					pAdjs.forEach(valid.add, valid);
 				}
 
-				// update neighbor's options to be whichever are options are in valid[]
-				let validSet = new Set(valid);							// using sets to prevent duplicates
-				let neighborSet = new Set(neighbor.options);
-				let newOptions = validSet.intersection(neighborSet);
-				neighbor.options = [...newOptions];
+				// update neighbor's options to be whichever are options are in valid
+				neighbor.options = [...prevOptions].filter((opt) => valid.has(opt));
 
-				if(neighbor.options.length === 0){	// gridlock :(
-					return false;					// will trigger a restart
+				if (neighbor.options.length === 0) {	// gridlock :(
+					while (history.length > 0) {		// backtrack
+						const { cell, options } = history.pop();
+						cell.options = options;
+					}
+					return false;
 				}
-
-				if(neighbor.options.length === 1){	// this neighbor is collapsed!
+	
+				if (neighbor.options.length === 1) {	// this neighbor is collapsed!
 					neighbor.collapsed = true;
 
 					// if neighbor not already collapsed, remove its index from uncollapsed array
-					let ind = this.#uncollapsed.indexOf((neighbor.y * this.#size) + neighbor.x);
+					const ind = this.#uncollapsed.indexOf(neighborAddress);
 					if(ind !== -1) this.#uncollapsed.splice(ind, 1);
-
 				}
-
+	
 				// add neighbor to propagation stack
-				if(neighbor.options.length < prevOptionCount){//this.#patternOptions.length){
-					stack.push(neighbor);
-				} 
+				stack.push(neighbor);
 			}
 		}
-		
-		return true; // no deadlocks detected, done with this propagation
+	
+		return true;	// no deadlocks detected, done with this propagation
 	}
+	
 
 	// conversion function to get the top left tile of every pattern
 	#patternsToTiles(){

@@ -1,6 +1,6 @@
 class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
-	outputSize = 7;
+	outputSize = 8;
 	N = 3;
 	structRange = 2;
 
