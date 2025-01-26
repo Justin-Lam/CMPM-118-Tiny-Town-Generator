@@ -16,8 +16,6 @@ class ConstraintSolver {
 		this.#size = size;
 		this.#patternOptions = Array.from({ length: this.#ip.patterns.length }, (_, i) => i);
 
-		this.#stateStack = []; 
-
 		this.#grid = this.#initGrid(this.#size, this.#patternOptions);
 		this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
 		if(this.#run()){
@@ -41,46 +39,21 @@ class ConstraintSolver {
 	// run() is the command center of the WFC algorithm
 	#run() {
 		console.log("initializing WFC...");
-
-		//this.#grid = this.#initGrid(this.#size, this.#patternOptions);
-		//this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
-		//this.#stateStack = []; // Stack to store states for backtracking
-
 		while (this.#uncollapsed.length > 0) {
 			this.#attemptsRemaining--;
 			if(this.#attemptsRemaining <= 0) { return false; }
-
-			// state save for backtracking
-			this.#stateStack.push({
-				grid: JSON.parse(JSON.stringify(this.#grid)), 
-				uncollapsed: [...this.#uncollapsed],      
-			});
-			
+	
 			const cell = this.#observe();
 			const pick = this.#randomIndex(cell.options);
 	
-			cell.options = [pick];
+			cell.options = [cell.options[pick]];
 			this.#resetVisitFlag();
 	
-			const result = this.#propagate(cell);
-			if (!result.success) {
-				if (this.#stateStack.length > 0) {		// backtrack
-					console.log("Backtracking...")
-					const prevState = this.#stateStack.pop();
-					this.#grid = prevState.grid;
-					this.#uncollapsed = prevState.uncollapsed;
-
-					/*
-					for (const cell of result.changes) {
-						cell.options = [...cell.prevOptions]; // Restore previous options
-						cell.collapsed = false;
-					}
-					*/
-				} else {
-					console.log("Restarting...");
-					this.#grid = this.#initGrid(this.#size, this.#patternOptions);
-					this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
-				}			
+			const success = this.#propagate(cell);
+			if (!success) {
+				console.log("Gridlock detected, restarting...");
+				this.#grid = this.#initGrid(this.#size, this.#patternOptions);
+				this.#uncollapsed = Array.from({ length: this.#grid.length }, (_, i) => i);
 			}
 		}
 	
@@ -115,14 +88,13 @@ class ConstraintSolver {
 		const history = [];			// save state for backtracking
 	
 		// update all of cell's neighbors
-		while(stack.length > 0) {
+		while (stack.length > 0) {
 			const cell = stack.pop();
-			cell.prevOptions = cell.options;
-			history.push(cell); // save state
+			history.push({ cell, options: [...cell.options] }); // save state
 	
-			for(let dir in cell.neighbors) {
+			for (let dir in cell.neighbors) {
 				const neighborAddress = cell.neighbors[dir];
-				if(neighborAddress === null) continue;				// cell doesnt have a neighbor in this direction
+				if (neighborAddress === null) continue;				// cell doesnt have a neighbor in this direction
 	
 				const neighbor = this.#grid[neighborAddress];
 				if(neighbor.visited === true){ continue; }			// cell has already been visited in this propagation
@@ -141,11 +113,15 @@ class ConstraintSolver {
 				// update neighbor's options to be whichever are options are in valid
 				neighbor.options = [...prevOptions].filter((opt) => valid.has(opt));
 
-				if(neighbor.options.length === 0) {	// gridlock :(
-					return { success: false, changes: history};
+				if (neighbor.options.length === 0) {	// gridlock :(
+					while (history.length > 0) {		// backtrack
+						const { cell, options } = history.pop();
+						cell.options = options;
+					}
+					return false;
 				}
 	
-				if(neighbor.options.length === 1) {	// this neighbor is collapsed!
+				if (neighbor.options.length === 1) {	// this neighbor is collapsed!
 					neighbor.collapsed = true;
 
 					// if neighbor not already collapsed, remove its index from uncollapsed array
@@ -158,7 +134,7 @@ class ConstraintSolver {
 			}
 		}
 	
-		return { success: true, changes: history};	// no deadlocks detected, done with this propagation
+		return true;	// no deadlocks detected, done with this propagation
 	}
 	
 
