@@ -1,8 +1,10 @@
 class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
-	outputSize = 9;
-	N = 3;
-	structRange = 2;
+	N = 2;
+
+	cs = new ConstraintSolver_Justin();
+	outputWidth = 15;
+	outputHeight = 10;
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -16,51 +18,105 @@ class TinyTownGenerator extends Phaser.Scene {
 
 	create()
 	{
-		this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 25, 40);
-
-		// generate stuff
-		this.generateKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-		this.generateKey.on("down", () => {
-			// generate stuff
-			console.log("generating map");
-
-			// Run wfc on the ground matrix using the image processor and the constraint solver
-			// Turn the outputted image into a new ground layer
-			//this.ip.process(PATHFINDER_GROUND, this.N); // img processor
-			//console.log(this.ip);
-			//this.groundLayer = new WFC(this.ip, this.outputSize).generated;
-			//this.showImage(this.groundLayer);
-
-			// Run wfc on the structures matrix using the image processor and the constraint solver
-			// Turn the outputted image into a new structures layer
-			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
-			console.log(this.ip);
-			this.structuresLayer = new ConstraintSolver(this.ip, this.outputSize).generated;
-			this.showImage(this.structuresLayer);
-
-			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
-			this.wm = new Wfdm(this.structuresLayer, 5, 5, this.structRange);
-			this.wm.printWorldFacts();
-			this.paragraphDescription = this.wm.getDescriptionParagraph();
-			console.log(this.paragraphDescription);
-		});
-		// Display the ground and structures layer and take a screenshot
-
-		// Store the screenshot, ground and structures layer, and world facts database together
+		this.setupControls();
+		this.showInputImage();
 	}
 
-	showImage(image) {
-		if (this.imageMap) {
-			this.imageMap.destroy();
+	showInputImage() {
+		this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 40, 25);
+		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
+		this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+		this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
+		this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
+		this.multiLayerMapLayers = [this.groundLayer, this.treesLayer, this.housesLayer];
+	}
+
+	setupControls() {
+		this.runWFC_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+		this.clear_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+
+		this.runWFC_Key.on("down", () => {
+			let patterns;
+			let weights;
+			let adjacencies;
+			let result;
+
+			this.ip.process(MAP1_GROUND, this.N);
+			console.log("Ground");
+			console.log(this.ip);
+			patterns = this.ip.patterns;
+			weights = this.ip.weights
+			adjacencies = this.ip.adjacencies;
+			result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+			if (!result) {
+				return;
+			}
+			let groundImage = this.cs.output;
+
+			this.ip.process(MAP1_STRUCTURES, this.N);
+			console.log("Structures");
+			console.log(this.ip);
+			patterns = this.ip.patterns;
+			weights = this.ip.weights
+			adjacencies = this.ip.adjacencies;
+			result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+			if (!result) {
+				return;
+			}
+			let structuresImage = this.cs.output;
+
+			this.showImages(groundImage, structuresImage);
+		});
+
+		this.clear_Key.on("down", () => {
+			for (const layer of this.multiLayerMapLayers) {
+				layer.setVisible(true);
+			}
+			if (this.groundMap) {
+				this.groundMap.destroy();
+			}
+			if (this.structuresMap) {
+				this.structuresMap.destroy();
+			}
+		});
+
+		const controls = `
+		<h2>Controls (open console recommended)</h2>
+		Run WFC: R <br>
+		Clear Output: C
+		`;
+		document.getElementById("description").innerHTML = controls;
+	}
+
+	/**
+	 * @param {number[][]} groundImage 
+	 * @param {number[][]} structuresImage 
+	 */
+	showImages(groundImage, structuresImage) {
+		if (this.groundMap) {
+			this.groundMap.destroy();
 		}
-		this.imageMap = this.make.tilemap({
-			data: image,
+		if (this.structuresMap) {
+			this.structuresMap.destroy();
+		}
+
+		this.groundMap = this.make.tilemap({
+			data: groundImage,
 			tileWidth: 16,
 			tileHeight: 16
 		});
-		if (!this.tileset) {
-			this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
+		this.structuresMap = this.make.tilemap({
+			data: structuresImage,
+			tileWidth: 16,
+			tileHeight: 16
+		});
+
+
+		for (const layer of this.multiLayerMapLayers) {
+			layer.setVisible(false);
 		}
-		this.imageMap.createLayer(0, this.tileset, 0, 0);
+
+		this.groundMap.createLayer(0, this.tileset, 0, 0);
+		this.structuresMap.createLayer(0, this.tileset, 0, 0);
 	}
 }

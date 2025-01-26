@@ -15,13 +15,36 @@ class ConstraintSolver_Justin {
 	 * @param {number[][][]} adjacencies 
 	 * @param {number} width output width
 	 * @param {number} height output height
+	 * @returns {boolean} whether the constraint solver was successful or not
 	 */
 	solve(patterns, weights, adjacencies, width, height) {
-		const waveMatrix = this.createWaveMatrix(patterns.length, width, height);
+		console.log("STARTING");
 
-		const [y, x] = this.getLeastEntropyCellPosition(waveMatrix, weights);
-		this.observe(waveMatrix, y, x, weights);
-		this.propagate(waveMatrix, y, x, adjacencies);
+		let waveMatrix = this.createWaveMatrix(patterns.length, width, height);
+		let attempts = 1;
+
+		while (attempts <= this.maxAttempts) {	// <= so this.maxAttempts can be 1
+			const [y, x] = this.getLeastEntropyUnsolvedCell(waveMatrix, weights);
+			if (y === -1 && x === -1) {
+				this.output = this.waveMatrixToImage(waveMatrix, patterns);
+				console.log("solved!");
+				break;
+			}
+
+			this.observe(waveMatrix, y, x, weights);
+			const contradictionCreated = this.propagate(waveMatrix, y, x, adjacencies);
+			if (contradictionCreated) {
+				console.log("restarting");
+				waveMatrix = this.createWaveMatrix(patterns.length, width, height);	// restart
+				attempts++;
+			}
+		}
+		if (attempts >= this.maxAttempts) {
+			console.log("max attempts reached");
+			return false;
+		}
+		console.log("took " + attempts + " attempt(s)");
+		return true;
 	}
 
 	/**
@@ -48,12 +71,12 @@ class ConstraintSolver_Justin {
 	}
 
 	/**
-	 * Uses Shannon Entropy
+	 * Get the cell with the least entropy but whos entropy is not 0. Uses Shannon Entropy.
 	 * @param {number[][][]} waveMatrix 2D matrix of number arrays
 	 * @param {number[]} weights
-	 * @returns {[y, x]}
+	 * @returns {number[] | undefined} [y, x] if there's an unsolved cell or undfined if there aren't any
 	 */
-	getLeastEntropyCellPosition(waveMatrix, weights) {
+	getLeastEntropyUnsolvedCell(waveMatrix, weights) {
 		/*
 			Build an array containing the positions of all cells tied with the least entropy
 			Return a random position from that array
@@ -65,7 +88,7 @@ class ConstraintSolver_Justin {
 			for (let x = 0; x < waveMatrix[0].length; x++) {
 				const possiblePatterns = waveMatrix[y][x];
 				const entropy = this.getEntropy(possiblePatterns, weights);
-				if (entropy < leastEntropy) {
+				if (entropy < leastEntropy && entropy > 0) {
 					leastEntropy = entropy;
 					leastEntropyCells = [[y, x]];
 				}
@@ -76,7 +99,12 @@ class ConstraintSolver_Justin {
 		}
 
 		const len = leastEntropyCells.length;
-		return leastEntropyCells[Math.floor(Math.random() * len)];
+		if (len > 0) {
+			return leastEntropyCells[Math.floor(Math.random() * len)];
+		}
+		else {
+			return [-1, -1];
+		}
 	}
 
 	/**
@@ -131,7 +159,16 @@ class ConstraintSolver_Justin {
 		throw new Error("Math did not check out");
 	}
 
+	/**
+	 * 
+	 * @param {*} waveMatrix
+	 * @param {*} y 
+	 * @param {*} x
+	 * @param {*} adjacencies
+	 * @returns {boolean} contradictionCreated
+	 */
 	propagate(waveMatrix, y, x, adjacencies) {
+		let contraditionCreated = false;
 		const stack = [[y, x]];
 		const visitedCells = [];
 		for (let y = 0; y < waveMatrix.length; y++) {
@@ -150,8 +187,8 @@ class ConstraintSolver_Justin {
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				const dir = DIRECTIONS[k];
-				const dy = dir[0];
-				const dx = dir[1];
+				const dy = -dir[0];	// need to reverse direction or else output will be upside down
+				const dx = -dir[1];	// need to reverse direction or else output will be upside down
 
 				// Don't go out of bounds
 				if (y+dy < 0 || y+dy > waveMatrix.length-1) {
@@ -173,6 +210,10 @@ class ConstraintSolver_Justin {
 				const adjCellPossiblePatterns = new Set(waveMatrix[y+dy][x+dx]);
 				const adjCellNewPossiblePatterns = cellAdjPatterns.intersection(adjCellPossiblePatterns);
 
+				if (adjCellNewPossiblePatterns.size === 0) {
+					contraditionCreated = true;
+					break;
+				}
 				if (adjCellNewPossiblePatterns.size !== adjCellPossiblePatterns.size) {
 					waveMatrix[y+dy][x+dx] = Array.from(adjCellNewPossiblePatterns);
 					stack.push([y+dy, x+dx]);
@@ -180,6 +221,23 @@ class ConstraintSolver_Justin {
 
 				visitedCells[y][x] = true;
 			}
+			if (contraditionCreated) {
+				break;
+			}
 		}
+		return contraditionCreated;
+	}
+
+	waveMatrixToImage(waveMatrix, patterns) {
+		const result = [];
+		for (let y = 0; y < waveMatrix.length; y++) {
+			result[y] = [];
+			for (let x = 0; x < waveMatrix[0].length; x++) {
+				const i = waveMatrix[y][x][0];
+				const tileID = patterns[i][0][0];
+				result[y][x] = tileID;
+			}
+		}
+		return result;
 	}
 }
