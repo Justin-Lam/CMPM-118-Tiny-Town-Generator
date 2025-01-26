@@ -7,6 +7,12 @@ class ImageProcessor {
 	patterns;
 
 	/**
+	 * Example: [ pattern0Weight, pattern1Weight, ... ]
+	 * @type {number[]}
+	*/
+	weights;
+
+	/**
 	 * A is to the {direction} of B. For example, if pattern 0 can be placed above patterns 1 and 3:
 	 * ```
 	 * adjacencies = [ pattern0Adjacencies, pattern2Adjacencies, ... ]
@@ -16,12 +22,6 @@ class ImageProcessor {
 	 * @type {number[][][]}
 	*/
 	adjacencies;
-
-	/**
-	 * Example: [ pattern0Weight, pattern1Weight, ... ]
-	 * @type {number[]}
-	*/
-	weights;
 
 	/**
 	 * Populates this.patterns, this.adjacencies, and this.weights.

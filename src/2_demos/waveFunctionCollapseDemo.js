@@ -90,6 +90,12 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 		this.showImage(image);
 		console.log(this.ip);
 
+		const patterns = this.ip.patterns;
+		const weights = this.ip.weights
+		const adjacencies = this.ip.adjacencies;
+		this.cs = new ConstraintSolver_Justin();
+		this.cs.solve(patterns, weights, adjacencies, 10, 10);
+
 		this.cameras.main.setZoom(this.ZOOM);
 		this.cameras.main.setBounds(0, 0, 1280, 800);
 	}
