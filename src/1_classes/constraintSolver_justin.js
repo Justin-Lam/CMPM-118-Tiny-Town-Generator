@@ -6,7 +6,7 @@ class ConstraintSolver_Justin {
 	output;
 	
 	// Parameter
-	maxAttempts = 100;
+	maxAttempts = 1000;
 
 	/**
 	 * 
@@ -24,7 +24,7 @@ class ConstraintSolver_Justin {
 		let attempts = 1;
 
 		while (attempts <= this.maxAttempts) {	// <= so this.maxAttempts can be 1
-			const [y, x] = this.getLeastEntropyUnsolvedCell(waveMatrix, weights);
+			const [y, x] = this.getLeastEntropyCellPosition(waveMatrix, weights);
 			if (y === -1 && x === -1) {
 				this.output = this.waveMatrixToImage(waveMatrix, patterns);
 				console.log("solved!");
@@ -39,7 +39,7 @@ class ConstraintSolver_Justin {
 				attempts++;
 			}
 		}
-		if (attempts >= this.maxAttempts) {
+		if (attempts > this.maxAttempts) {
 			console.log("max attempts reached");
 			return false;
 		}
@@ -76,7 +76,7 @@ class ConstraintSolver_Justin {
 	 * @param {number[]} weights
 	 * @returns {number[] | undefined} [y, x] if there's an unsolved cell or undfined if there aren't any
 	 */
-	getLeastEntropyUnsolvedCell(waveMatrix, weights) {
+	getLeastEntropyCellPosition(waveMatrix, weights) {
 		/*
 			Build an array containing the positions of all cells tied with the least entropy
 			Return a random position from that array
@@ -198,7 +198,6 @@ class ConstraintSolver_Justin {
 					continue;
 				}
 
-
 				const cellAdjPatterns = new Set();
 				for (const patternIndex of cellPossiblePatterns) {
 					const adjPatterns = adjacencies[patternIndex][k];
@@ -218,12 +217,11 @@ class ConstraintSolver_Justin {
 					waveMatrix[y+dy][x+dx] = Array.from(adjCellNewPossiblePatterns);
 					stack.push([y+dy, x+dx]);
 				}
-
-				visitedCells[y][x] = true;
 			}
 			if (contraditionCreated) {
 				break;
 			}
+			visitedCells[y][x] = true;
 		}
 		return contraditionCreated;
 	}

@@ -3,8 +3,8 @@ class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 
 	cs = new ConstraintSolver_Justin();
-	outputWidth = 15;
-	outputHeight = 10;
+	outputWidth = 20;
+	outputHeight = 15;
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -13,22 +13,25 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap.tmj");
 	}
 
 	create()
 	{
 		this.setupControls();
 		this.showInputImage();
+
+		this.ip.process(MAP1_GROUND, 2);
+		console.log(this.ip);
 	}
 
 	showInputImage() {
-		this.multiLayerMap = this.add.tilemap("three-farmhouses", 16, 16, 40, 25);
+		this.multiLayerMap = this.add.tilemap("tinyTownMap", 16, 16, 40, 25);
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
-		this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-		this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-		this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
-		this.multiLayerMapLayers = [this.groundLayer, this.treesLayer, this.housesLayer];
+		this.groundLayer = this.multiLayerMap.createLayer("Ground", this.tileset, 0, 0);
+		this.structuresLayer = this.multiLayerMap.createLayer("Structures", this.tileset, 0, 0);
+		//this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
+		this.multiLayerMapLayers = [this.groundLayer, this.structuresLayer, /*this.housesLayer*/];
 	}
 
 	setupControls() {
@@ -53,7 +56,7 @@ class TinyTownGenerator extends Phaser.Scene {
 			}
 			let groundImage = this.cs.output;
 
-			this.ip.process(MAP1_STRUCTURES, this.N);
+			this.ip.process(MAP2_STRUCTURES, this.N);
 			console.log("Structures");
 			console.log(this.ip);
 			patterns = this.ip.patterns;

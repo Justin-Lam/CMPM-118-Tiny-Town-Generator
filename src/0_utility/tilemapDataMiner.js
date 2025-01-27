@@ -13,19 +13,18 @@ class TilemapDataMiner extends Phaser.Scene
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap.tmj");
 	}
 
 	create()
 	{
 		// ENTER DATA HERE
-		const key = "three-farmhouses";
+		const key = "tinyTownMap";
 		const width = 40;	// in tiles
 		const height = 25;	// in tiles
 		const layerNames = [
-			"Ground-n-Walkways",
-			"Trees-n-Bushes",
-			"Houses-n-Fences"
+			"Ground",
+			"Structures"
 		];
 		const tileWidth = 16;
 		const tileHeight = 16;
