@@ -1,18 +1,17 @@
-class WfdmDemo extends Phaser.Scene
-{
+class WorldFactsDatabaseMakerDemo extends Phaser.Scene {
 	TILE_SIZE = 16;		// in pixels
 	MAP_WIDTH = 40;		// in tiles
 	MAP_HEIGHT = 25;	// in tiles
 
 	constructor() {
-		super("wfdmDemoScene");
+		super("worldFactsDatabaseMakerDemoScene");
 	}
 
 	preload()
 	{
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");                   // packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");   // tilemap in JSON
+		this.load.image("tilemap_tiles", "tilemap_packed.png");
+		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
 	}
 
 	create()
@@ -45,8 +44,8 @@ class WfdmDemo extends Phaser.Scene
 		this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
 
 		this.groundLayer.setVisible(false);
-        this.treesLayer.setVisible(false);
-        this.housesLayer.setVisible(false);
+		this.treesLayer.setVisible(false);
+		this.housesLayer.setVisible(false);
 	}
 
 	createSingleLayerMap() {

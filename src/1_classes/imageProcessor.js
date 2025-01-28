@@ -1,19 +1,24 @@
 /** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
 class ImageProcessor {
 	/** 
-	 * Ex: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
+	 * Example: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
 	 * @type {number[][][]}
 	*/
 	patterns;
 
 	/**
-	 * Ex: [ [pattern1, pattern3, UP], [pattern2, pattern3, RIGHT], ... ], where A is to the {direction} of B.
-	 * @type {number[][]}
+	 * A is to the {direction} of B. For example, if pattern 0 can be placed above patterns 1 and 3:
+	 * ```
+	 * adjacencies = [ pattern0Adjacencies, pattern2Adjacencies, ... ]
+	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
+	 * upAdjacencies = [ 1, 3, ... ]
+	 * ```
+	 * @type {number[][][]}
 	*/
 	adjacencies;
 
 	/**
-	 * Ex. [ pattern0Weight, pattern1Weight, ... ]
+	 * Example: [ pattern0Weight, pattern1Weight, ... ]
 	 * @type {number[]}
 	*/
 	weights;
@@ -31,15 +36,21 @@ class ImageProcessor {
 	}
 
 	/**
-	 * @param {number[][]} image 
-	 * @param {number} N 
+	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number} N the desired width of the resulting square patterns
 	 */
 	validateInput(image, N) {
+		if (!image) {
+			throw new Error("Image is undefined");
+		}
 		if (image.length < 1) {
 			throw new Error("Image height is less than 1.");
 		}
 		if (image[0].length < 1) {
 			throw new Error("Image width is less than 1.");
+		}
+		if (!N) {
+			throw new Error("N is undefined");
 		}
 		if (N < 2) {
 			throw new Error("N is less than 2.");
@@ -102,13 +113,17 @@ class ImageProcessor {
 		}
 		return pattern;
 	}
-	
+
 	getAdjacencies() {
 		/*
+			Check each pattern against every other pattern in every direction
 			Because pattern adjacency is commutative (A is adjacent to B means B is adjacent to A)
 			We don't need to check combos that we've already done
 			Hence why j starts at i+1
 		*/
+		for (const pattern of this.patterns) {
+			this.adjacencies.push([ [], [], [], [] ]);
+		}
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);
 		for (let i = 0; i < this.patterns.length; i++) {
 			for (let j = i+1; j < this.patterns.length; j++) {
@@ -117,8 +132,9 @@ class ImageProcessor {
 					const p2 = this.patterns[j];
 					const dir = DIRECTIONS[k];
 					if (this.isAdjacent(p1, p2, dir)) {
-						this.adjacencies.push([i, j, k]);
-						this.adjacencies.push([j, i, oppositeDirIndex.get(k)]);
+						const o = oppositeDirIndex.get(k);
+						this.adjacencies[i][k].push(j);
+						this.adjacencies[j][o].push(i);
 					}
 				}
 			}

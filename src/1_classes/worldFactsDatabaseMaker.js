@@ -1,4 +1,4 @@
-class Wfdm {
+class WorldFactsDatabaseMaker {
 	TILE_COLORS = [
         {
             colorID: 0,

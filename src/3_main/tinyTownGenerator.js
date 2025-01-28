@@ -1,18 +1,17 @@
-class Generator extends Phaser.Scene
-{
+class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
-	outputSize = 5;
-	N = 2;
+	outputSize = 8;
+	N = 3;
 	structRange = 2;
 
 	constructor() {
-		super("generatorScene");
+		super("tinyTownGeneratorScene");
 	}
 
 	preload() {
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");						// packed tilemap
-		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");		// tilemap in JSON
+		this.load.image("tilemap_tiles", "tilemap_packed.png");
+		this.load.tilemapTiledJSON("three-farmhouses", "three-farmhouses.tmj");
 	}
 
 	create()
@@ -34,18 +33,19 @@ class Generator extends Phaser.Scene
 
 			// Run wfc on the structures matrix using the image processor and the constraint solver
 			// Turn the outputted image into a new structures layer
-			this.ip.process(PATHFINDER_STRUCTURES, this.N); // img processor
+			this.ip.process(MAP1_STRUCTURES, this.N); // img processor
 			console.log(this.ip);
-			this.structuresLayer = new WFC(this.ip, this.outputSize).generated;
-			console.log(this.structuresLayer);
+			this.structuresLayer = new ConstraintSolver(this.ip, this.outputSize).generated;
 			this.showImage(this.structuresLayer);
 
 			// Run wfdm on the structures layer (UNCOMMENT AND EDIT LINE BELOW WHEN STRUCTURES ARRAY IS IMPLEMENTED)
+			/*
 			this.wm = new Wfdm(this.structuresLayer, 5, 5, this.structRange);
 			this.wm.getWorldFacts();
 			this.wm.printWorldFacts();
 			this.paragraphDescription = this.wm.getDescriptionParagraph();
 			console.log(this.paragraphDescription);
+			*/
 		});
 		// Display the ground and structures layer and take a screenshot
 
