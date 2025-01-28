@@ -6,7 +6,7 @@ class ConstraintSolver_Justin {
 	output;
 	
 	// Parameter
-	maxAttempts = 100;
+	maxAttempts = 10;
 
 	/**
 	 * 
@@ -170,20 +170,11 @@ class ConstraintSolver_Justin {
 	propagate(waveMatrix, y, x, adjacencies) {
 		let contraditionCreated = false;
 		const stack = [[y, x]];
-		const visitedCells = [];
-		for (let y = 0; y < waveMatrix.length; y++) {
-			visitedCells[y] = [];
-			for (let x = 0; x < waveMatrix[0].length; x++) {
-				visitedCells[y][x] = false;
-			}
-		}
 
 		while (stack.length > 0) {
 			const [y, x] = stack.pop();	// this position is different from the one passed in as an argument
-			if (visitedCells[y][x]) {
-				continue;
-			}
 			const cellPossiblePatterns = waveMatrix[y][x];
+			console.log("pop");
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				const dir = DIRECTIONS[k];
@@ -221,7 +212,6 @@ class ConstraintSolver_Justin {
 			if (contraditionCreated) {
 				break;
 			}
-			visitedCells[y][x] = true;
 		}
 		return contraditionCreated;
 	}

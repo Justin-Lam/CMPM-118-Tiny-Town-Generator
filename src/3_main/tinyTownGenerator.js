@@ -3,8 +3,8 @@ class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 
 	cs = new ConstraintSolver_Justin();
-	outputWidth = 16;
-	outputHeight = 10;
+	outputWidth = 24;
+	outputHeight = 15;
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -13,7 +13,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap3.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap2.tmj");
 	}
 
 	create()
@@ -56,7 +56,7 @@ class TinyTownGenerator extends Phaser.Scene {
 			}
 			let groundImage = this.cs.output;
 
-			this.ip.process(MAP4_STRUCTURES, this.N);
+			this.ip.process(MAP3_STRUCTURES, this.N);
 			console.log("Structures");
 			console.log(this.ip);
 			patterns = this.ip.patterns;
