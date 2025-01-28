@@ -78,7 +78,9 @@ class structureGeneration extends Phaser.Scene {
 
         this.FOREST_EDGE_BAN = { // bans tiles from edges
             top: [15, 16],
-            bottom: [3, 4]
+            bottom: [3, 4],
+            left: [],
+            right: []
         }
 
         this.structureCursor = 0;
