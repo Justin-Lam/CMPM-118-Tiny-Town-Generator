@@ -6,7 +6,7 @@ class ConstraintSolver_Justin {
 	output;
 	
 	// Parameter
-	maxAttempts = 1000;
+	maxAttempts = 100;
 
 	/**
 	 * 

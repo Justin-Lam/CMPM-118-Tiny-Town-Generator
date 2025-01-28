@@ -13,7 +13,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap2.tmj");
 	}
 
 	create()
@@ -56,7 +56,7 @@ class TinyTownGenerator extends Phaser.Scene {
 			}
 			let groundImage = this.cs.output;
 
-			this.ip.process(MAP2_STRUCTURES, this.N);
+			this.ip.process(MAP3_STRUCTURES, this.N);
 			console.log("Structures");
 			console.log(this.ip);
 			patterns = this.ip.patterns;
