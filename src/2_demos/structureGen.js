@@ -1,5 +1,6 @@
 // try generating map structures sepatrately
 class structureGeneration extends Phaser.Scene {
+    // TEMP MINI INPUTS FOR CONSTRAINT SOLVER
     BROWN_WINDOWS = [
         [88, -1, -1, 88, -1],
         [-1, -1, -1, -1, -1],
@@ -21,6 +22,12 @@ class structureGeneration extends Phaser.Scene {
         [-1, -1, 16, -1, 15, -1, -1, -1, -1, -1],
         [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    ]
+
+    GROUND = [
+        [0,1,2,0,1,2,],
+        [0,1,2,2,1,0],
+        [1,0,2,0,1,2],
     ]
 
     constructor() {
@@ -85,10 +92,11 @@ class structureGeneration extends Phaser.Scene {
 
         this.structureCursor = 0;
         this.STRUCTURES = [
+            {name: "ground"},
             {name: "house", fill: this.BROWN_BODY, special: this.GREY_ROOF},
             {name: "forest", special: this.FOREST_EDGE_BAN},
             {name: "fence", fill: this.FENCE1},             
-            {name: "path", fill: []},        
+            {name: "path"},        
         ];
     }
 
@@ -101,9 +109,22 @@ class structureGeneration extends Phaser.Scene {
         this.cs = new ConstraintSolver_Justin();
 
         this.inputHandler();
+
+        // TODO: portion map into chunks, assign each chunk with a structure type, then generate structures there
+        //      challenge: logical placement of paths by structures. maybe use boristhebrave path gen (see ideation doc)
+        //      - when making chunks,  
+
+        // TODO: decor layer
     }
 
     inputHandler(){
+		const controls = `
+		<h2>Controls (open console recommended)</h2>
+		Change target structure: UP/DOWN
+        Generate: N
+		`;
+		document.getElementById("description").innerHTML = controls;
+
         // set structure to be built
         this.changeStructure_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.changeStructure_Key.on("down", () => { this.structure = this.changeStructure(-1); })
@@ -111,7 +132,7 @@ class structureGeneration extends Phaser.Scene {
 		this.changeStructure_Key.on("down", () => { this.structure = this.changeStructure(1); })
 
         // generate structure
-        this.generateStructure_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
+        this.generateStructure_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N);
 		this.generateStructure_Key.on("down", () => {
             let build = this.callFunction(
                 this.structure.name + "Builder", {
@@ -166,6 +187,23 @@ class structureGeneration extends Phaser.Scene {
         }
 
         return pick.tile;
+    }
+
+    groundBuilder(){
+        console.log("TODO -- build ground");
+
+        this.ip.process(this.GROUND, 2);
+        let {patterns, weights, adjacencies} = this.ip;
+        // TODO: pass w, h in args
+        let w = 15;//Math.floor(Math.random() * 8 + 3);
+        let h = 10;//Math.floor(Math.random() * 8 + 3);
+        let result = this.cs.solve(patterns, weights, adjacencies, w, h); 
+        
+        let ground = [];
+        if(result){ ground = this.cs.output; }
+        console.log(ground)
+
+        return ground;
     }
 
     // TODO: generate roof and edges with wfc ??
