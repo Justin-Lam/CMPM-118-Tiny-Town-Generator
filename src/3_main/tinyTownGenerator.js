@@ -56,7 +56,7 @@ class TinyTownGenerator extends Phaser.Scene {
 			}
 			let groundImage = this.cs.output;
 
-			this.ip.process(MAP2_STRUCTURES, this.N);
+			this.ip.process(GREY_ROOF_STUFF, this.N);
 			console.log("Structures");
 			console.log(this.ip);
 			patterns = this.ip.patterns;
