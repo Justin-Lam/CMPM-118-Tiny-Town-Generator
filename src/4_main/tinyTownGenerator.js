@@ -2,7 +2,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
 	N = 2;
 
-	cs = new ConstraintSolver_Justin();
+	cs = new ConstraintSolver();
 	outputWidth = 24;
 	outputHeight = 15;
 

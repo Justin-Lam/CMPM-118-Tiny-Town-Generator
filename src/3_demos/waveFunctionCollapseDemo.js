@@ -65,7 +65,7 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 	currentImageIndex = 0;
 	N = 2;
 
-	cs = new ConstraintSolver_Justin();
+	cs = new ConstraintSolver();
 	outputWidth = 10;
 	outputHeight = 10;
 

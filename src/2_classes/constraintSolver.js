@@ -1,4 +1,4 @@
-class ConstraintSolver_Justin {
+class ConstraintSolver {
 	/**
 	 * The output image as a 2D matrix of tile IDs.
 	 * @type {number[][]}
