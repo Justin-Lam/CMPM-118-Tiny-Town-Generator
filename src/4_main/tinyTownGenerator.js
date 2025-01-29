@@ -15,7 +15,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap3.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap2.tmj");
 	}
 
 	create()
