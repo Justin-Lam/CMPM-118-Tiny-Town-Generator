@@ -6,7 +6,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	outputWidth = 24;
 	outputHeight = 15;
 
-	numRuns = 100;	// total number of run for this.getAverageRuntime()
+	numRuns = 10;	// for this.getAverageRuntime()
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -15,25 +15,29 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap2.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap3.tmj");
 	}
 
 	create()
 	{
 		this.setupControls();
 		this.showInputImage();
-
-		this.ip.process(MAP1_GROUND, 2);
-		console.log(this.ip);
 	}
 
 	showInputImage() {
 		this.multiLayerMap = this.add.tilemap("tinyTownMap", 16, 16, 40, 25);
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
+
+		// Use the following for custom maps:
 		this.groundLayer = this.multiLayerMap.createLayer("Ground", this.tileset, 0, 0);
 		this.structuresLayer = this.multiLayerMap.createLayer("Structures", this.tileset, 0, 0);
+		this.multiLayerMapLayers = [this.groundLayer, this.structuresLayer];
+
+		// Use the following for three-farmhouses:
+		//this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+		//this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
 		//this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
-		this.multiLayerMapLayers = [this.groundLayer, this.structuresLayer, /*this.housesLayer*/];
+		//this.multiLayerMapLayers = [this.groundLayer, this.treesLayer, this.housesLayer];
 	}
 
 	setupControls() {
@@ -43,7 +47,6 @@ class TinyTownGenerator extends Phaser.Scene {
 
 		this.runWFC_Key.on("down", () => this.generateMap());
 		this.timedRuns_Key.on("down", () => this.getAverageRuntime(this.numRuns));
-
 		this.clear_Key.on("down", () => {
 			for (const layer of this.multiLayerMapLayers) {
 				layer.setVisible(true);
@@ -71,9 +74,8 @@ class TinyTownGenerator extends Phaser.Scene {
 		let adjacencies;
 		let result;
 
-		this.ip.process(MAP1_GROUND, this.N);
 		console.log("Ground");
-		//console.log(this.ip);
+		this.ip.process(MAP1_GROUND, this.N);
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
@@ -83,9 +85,8 @@ class TinyTownGenerator extends Phaser.Scene {
 		}
 		let groundImage = this.cs.output;
 
-		this.ip.process(MAP3_STRUCTURES, this.N);
 		console.log("Structures");
-		//console.log(this.ip);
+		this.ip.process(MAP3_STRUCTURES, this.N);
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
@@ -96,23 +97,6 @@ class TinyTownGenerator extends Phaser.Scene {
 		let structuresImage = this.cs.output;
 
 		this.showImages(groundImage, structuresImage);
-	}
-
-	getAverageRuntime(numRuns){
-		let timeStart = performance.now();
-		let timeTotal = 0;
-		for(let i = 1; i <= numRuns; i++){
-			this.generateMap();
-
-			let timeEnd = performance.now();
-			let timeElapsed = timeEnd - timeStart;
-			timeTotal += timeElapsed;
-
-			console.log(`Generation #${i} took ${timeElapsed.toFixed(2)} ms`)
-
-			timeStart = performance.now();
-		}
-		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
 	}
 
 	/**
@@ -137,13 +121,29 @@ class TinyTownGenerator extends Phaser.Scene {
 			tileWidth: 16,
 			tileHeight: 16
 		});
-
+		
+		this.groundMap.createLayer(0, this.tileset, 0, 0);
+		this.structuresMap.createLayer(0, this.tileset, 0, 0);
 
 		for (const layer of this.multiLayerMapLayers) {
 			layer.setVisible(false);
 		}
+	}
 
-		this.groundMap.createLayer(0, this.tileset, 0, 0);
-		this.structuresMap.createLayer(0, this.tileset, 0, 0);
+	getAverageRuntime(numRuns){
+		let timeStart = performance.now();
+		let timeTotal = 0;
+		for(let i = 1; i <= numRuns; i++){
+			this.generateMap();
+
+			let timeEnd = performance.now();
+			let timeElapsed = timeEnd - timeStart;
+			timeTotal += timeElapsed;
+
+			console.log(`Generation #${i} took ${timeElapsed.toFixed(2)} ms`)
+
+			timeStart = performance.now();
+		}
+		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
 	}
 }
