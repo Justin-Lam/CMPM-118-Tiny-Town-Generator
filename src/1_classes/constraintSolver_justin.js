@@ -169,12 +169,13 @@ class ConstraintSolver_Justin {
 	 */
 	propagate(waveMatrix, y, x, adjacencies) {
 		let contraditionCreated = false;
-		const stack = [[y, x]];
+		const queue = [[y, x]];
 
-		while (stack.length > 0) {
-			const [y, x] = stack.pop();	// this position is different from the one passed in as an argument
+		while (queue.length > 0) {
+			//const [y, x] = queue.pop();	// this position is different from the one passed in as an argument
+			const [y, x] = queue.shift();
 			const cellPossiblePatterns = waveMatrix[y][x];
-			console.log("pop");
+			//console.log("shift");
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				const dir = DIRECTIONS[k];
@@ -206,7 +207,7 @@ class ConstraintSolver_Justin {
 				}
 				if (adjCellNewPossiblePatterns.size !== adjCellPossiblePatterns.size) {
 					waveMatrix[y+dy][x+dx] = Array.from(adjCellNewPossiblePatterns);
-					stack.push([y+dy, x+dx]);
+					queue.push([y+dy, x+dx]);
 				}
 			}
 			if (contraditionCreated) {
