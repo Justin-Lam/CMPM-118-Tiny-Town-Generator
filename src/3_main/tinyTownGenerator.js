@@ -6,6 +6,8 @@ class TinyTownGenerator extends Phaser.Scene {
 	outputWidth = 24;
 	outputHeight = 15;
 
+	numRuns = 100;	// total number of run for this.getAverageRuntime()
+
 	constructor() {
 		super("tinyTownGeneratorScene");
 	}
@@ -37,39 +39,10 @@ class TinyTownGenerator extends Phaser.Scene {
 	setupControls() {
 		this.runWFC_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 		this.clear_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+		this.timedRuns_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
 
-		this.runWFC_Key.on("down", () => {
-			let patterns;
-			let weights;
-			let adjacencies;
-			let result;
-
-			this.ip.process(MAP1_GROUND, this.N);
-			console.log("Ground");
-			console.log(this.ip);
-			patterns = this.ip.patterns;
-			weights = this.ip.weights
-			adjacencies = this.ip.adjacencies;
-			result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
-			if (!result) {
-				return;
-			}
-			let groundImage = this.cs.output;
-
-			this.ip.process(MAP3_STRUCTURES, this.N);
-			console.log("Structures");
-			console.log(this.ip);
-			patterns = this.ip.patterns;
-			weights = this.ip.weights
-			adjacencies = this.ip.adjacencies;
-			result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
-			if (!result) {
-				return;
-			}
-			let structuresImage = this.cs.output;
-
-			this.showImages(groundImage, structuresImage);
-		});
+		this.runWFC_Key.on("down", () => this.generateMap());
+		this.timedRuns_Key.on("down", () => this.getAverageRuntime(this.numRuns));
 
 		this.clear_Key.on("down", () => {
 			for (const layer of this.multiLayerMapLayers) {
@@ -86,9 +59,60 @@ class TinyTownGenerator extends Phaser.Scene {
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Run WFC: R <br>
-		Clear Output: C
+		Clear Output: C <br>
+		Get average runtime over ${this.numRuns} runs: T
 		`;
 		document.getElementById("description").innerHTML = controls;
+	}
+
+	generateMap(){
+		let patterns;
+		let weights;
+		let adjacencies;
+		let result;
+
+		this.ip.process(MAP1_GROUND, this.N);
+		console.log("Ground");
+		//console.log(this.ip);
+		patterns = this.ip.patterns;
+		weights = this.ip.weights
+		adjacencies = this.ip.adjacencies;
+		result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		if (!result) {
+			return;
+		}
+		let groundImage = this.cs.output;
+
+		this.ip.process(MAP3_STRUCTURES, this.N);
+		console.log("Structures");
+		//console.log(this.ip);
+		patterns = this.ip.patterns;
+		weights = this.ip.weights
+		adjacencies = this.ip.adjacencies;
+		result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		if (!result) {
+			return;
+		}
+		let structuresImage = this.cs.output;
+
+		this.showImages(groundImage, structuresImage);
+	}
+
+	getAverageRuntime(numRuns){
+		let timeStart = performance.now();
+		let timeTotal = 0;
+		for(let i = 1; i <= numRuns; i++){
+			this.generateMap();
+
+			let timeEnd = performance.now();
+			let timeElapsed = timeEnd - timeStart;
+			timeTotal += timeElapsed;
+
+			console.log(`Generation #${i} took ${timeElapsed.toFixed(2)} ms`)
+
+			timeStart = performance.now();
+		}
+		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
 	}
 
 	/**
