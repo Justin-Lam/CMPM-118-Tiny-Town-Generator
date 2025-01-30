@@ -19,7 +19,7 @@ class WorldFactsDatabaseMakerDemo extends Phaser.Scene {
 		this.createMultiLayerMap();		// easier to understand visually for humans; displayed initially
 		this.createSingleLayerMap();	// easier to understand visually for computers
 
-		this.wm = new Wfdm(this.singleLayerMapData, this.MAP_WIDTH, this.MAP_HEIGHT, 2);
+		this.wm = new WorldFactsDatabaseMaker(this.singleLayerMapData, this.MAP_WIDTH, this.MAP_HEIGHT, 2);
 		this.wm.getWorldFacts();
 		this.wm.printWorldFacts();
 

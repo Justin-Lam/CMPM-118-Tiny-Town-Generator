@@ -217,12 +217,23 @@ class WorldFactsDatabaseMaker {
 	getDescriptionParagraph()
 	{
 		let par = "";
+		// For each structure
 		for (let i = 0; i <  this.structures.length; i++)
 		{
 			let struct = this.structures[i];
 			// Initial identification
-			par += "There is a";
+			if (i == 0)
+			{
+				par += "There is a";
+			}
+			else
+			{
+				let relativePos = this.getStructRelativePosition(this.structures[i - 1], struct);
+				console.log(relativePos);
+				par = par + "o the" + relativePos + " of that " + this.structures[i - 1].type + ", there is a"
+			}
 
+			// Structure color
 			for (let j = 0; j < struct.colors.length; j++)
 			{
 				par = par + " " + struct.colors[j];
@@ -232,7 +243,8 @@ class WorldFactsDatabaseMaker {
 				}
 			}
 
-			par = par + " " + struct.type + " at the " + struct.qualPosition + " of the map";
+			par = par + " " + struct.type;
+			par = par + " at the " + struct.qualPosition + " of the map";
 
 			// Substructures
 			let hasSubstructures = false;
@@ -281,6 +293,39 @@ class WorldFactsDatabaseMaker {
 		}
 
 		return par;
+	}
+
+	getStructRelativePosition(prevStruct, newStruct)
+	{
+		let relativePos = "";
+		console.log(newStruct.boundingBox.topLeft);
+		// if the new structure is below the previous
+		if (newStruct.boundingBox.topLeft.minY < prevStruct.boundingBox.topLeft.minY)
+		{
+			relativePos += " top";
+		}
+		else if (newStruct.boundingBox.topLeft.minY > prevStruct.boundingBox.topLeft.minY)
+		{
+			relativePos += " bottom";
+		}
+
+		if (newStruct.boundingBox.topLeft.minX > prevStruct.boundingBox.topLeft.minX)
+		{
+			relativePos += " right";
+		}
+		else if (newStruct.boundingBox.topLeft.minX < prevStruct.boundingBox.topLeft.minX)
+		{
+			relativePos += " left";
+		}
+
+		console.log(relativePos);
+
+		return relativePos;
+	}
+
+	getDescriptionQA()
+	{
+
 	}
 
 	getStructureQualPosition(positions)
