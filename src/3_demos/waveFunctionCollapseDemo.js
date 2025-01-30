@@ -61,16 +61,13 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 		this.IMAGE2
 	];
 
-	TILES = [
-		this.WATER,		this.SAND_C,		this.GRASS_C
-	]
-	ZOOM = 1;
-
 	ip = new ImageProcessor();
 	currentImageIndex = 0;
 	N = 2;
-	currentAdjacencyIndex = 0;
-	outputSize = 10;
+
+	cs = new ConstraintSolver();
+	outputWidth = 10;
+	outputHeight = 10;
 
 	constructor() {
 		super("waveFunctionCollapseDemoScene");
@@ -89,9 +86,6 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 		this.ip.process(image, this.N);
 		this.showImage(image);
 		console.log(this.ip);
-
-		this.cameras.main.setZoom(this.ZOOM);
-		this.cameras.main.setBounds(0, 0, 1280, 800);
 	}
 
 	/** @param {number[][]} image */
@@ -115,23 +109,29 @@ class WaveFunctionCollapseDemo extends Phaser.Scene {
 		this.nextImage_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
 		this.decreaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
 		this.increaseN_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+		this.runConstraintSolver_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
 		this.prevImage_Key.on("down", () => this.changeImage(-1));
 		this.nextImage_Key.on("down", () => this.changeImage(1));
 		this.decreaseN_Key.on("down", () => this.changeN(-1));
 		this.increaseN_Key.on("down", () => this.changeN(1));
-
-		this.wfc_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB);
-		this.wfc_Key.on("down", () => {
-			let myMap = new ConstraintSolver(this.ip, this.outputSize).generated;
-            this.showImage(myMap);
+		this.runConstraintSolver_Key.on("down", () => {
+			const patterns = this.ip.patterns;
+			const weights = this.ip.weights
+			const adjacencies = this.ip.adjacencies;
+			const result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+			if (!result) {
+				return;
+			}
+			const image = this.cs.output;
+			this.showImage(image);
 		});
 
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Change Image: UP/DOWN <br>
 		Change N: LEFT/RIGHT <br>
-        Run WFC: TAB
+		Run Constraint Solver: R
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}

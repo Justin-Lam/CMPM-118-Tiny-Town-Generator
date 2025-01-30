@@ -4,8 +4,8 @@
 let config = {
 	parent: 'phaser-game',
 	type: Phaser.CANVAS,
-	width: 1280,
-	height: 800,
+	width: 1280/2,
+	height: 800/2,
 	zoom: 1,
 	autoCenter: true,
 	render: {
