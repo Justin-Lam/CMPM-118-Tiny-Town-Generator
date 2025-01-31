@@ -1,3 +1,9 @@
+/*
+TO DO:
+- store relative positions (maybe in {structure id, relativePos} format)
+- rename QualPos to AbsPos
+- edit paper to reflect the changes
+*/
 class Structure {
     constructor(type, id, boundingBox) {
         this.type = type;
@@ -5,10 +11,11 @@ class Structure {
         this.boundingBox = boundingBox;
 
         // For description generation
-        this.qualPosition = "";
+        this.absPosition = "";
         this.features = [];
         this.substructures = [];
         this.colors = [];
+		this.relativePos = [];
     }
 }
 
@@ -135,7 +142,7 @@ class WorldFactsDatabaseMaker {
 			for (const [index, positionArray] of this.getStructures(type.tileIDs).entries()) {
 				let struct = new Structure(type.name, index, this.getBoundingBox(positionArray));
 
-				struct.qualPosition = this.getStructureQualPosition(positionArray);
+				struct.absPosition = this.getStructureAbsPosition(positionArray);
 				struct.features = this.getStructureFeatures(type, positionArray);
 				if (type.substructures != null)
 				{
@@ -145,6 +152,26 @@ class WorldFactsDatabaseMaker {
 				struct.colors = this.getColors(basePosition);
 
 				this.structures.push(struct);
+			}
+		}
+
+		// get relative positions and store
+		for (let i = 0; i < this.structures.length; i++)
+		{
+			let struct = this.structures[i];
+			for (let j = 0; j < this.structures.length; j++)
+			{
+				let otherID = this.structures[j].id;
+				let otherName = this.structures[j].type;
+				if (otherID == struct.id && otherName == struct.type)
+				{
+					continue;
+				}
+
+				otherName = otherName += otherID;
+
+				let relativePos = this.getStructRelativePosition(this.structures[j], struct); // struct is to the DIR of this.structures[j]
+				struct.relativePos.push({otherName, relativePos});
 			}
 		}
 	}
@@ -169,7 +196,7 @@ class WorldFactsDatabaseMaker {
 				}
 			}
 		}
-	
+
 		return structures;
 	}
 
@@ -243,8 +270,7 @@ class WorldFactsDatabaseMaker {
 			else
 			{
 				let relativePos = this.getStructRelativePosition(this.structures[i - 1], struct);
-				console.log(relativePos);
-				par = par + "o the" + relativePos + " of that " + this.structures[i - 1].type + ", there is a"
+				par = par + "To the" + relativePos + " of that " + this.structures[i - 1].type + ", there is a"
 			}
 
 			// Structure color
@@ -258,7 +284,7 @@ class WorldFactsDatabaseMaker {
 			}
 
 			par = par + " " + struct.type;
-			par = par + " at the " + struct.qualPosition + " of the map";
+			par = par + " at the " + struct.absPosition + " of the map";
 
 			// Substructures
 			let hasSubstructures = false;
@@ -309,11 +335,11 @@ class WorldFactsDatabaseMaker {
 		return par;
 	}
 
+	// new struct is to the DIR of prev struct
 	getStructRelativePosition(prevStruct, newStruct)
 	{
 		let relativePos = "";
-		console.log(newStruct.boundingBox.topLeft);
-		// if the new structure is below the previous
+		// if the new structure is above the previous
 		if (newStruct.boundingBox.topLeft.minY < prevStruct.boundingBox.topLeft.minY)
 		{
 			relativePos += " top";
@@ -332,8 +358,6 @@ class WorldFactsDatabaseMaker {
 			relativePos += " left";
 		}
 
-		console.log(relativePos);
-
 		return relativePos;
 	}
 
@@ -342,7 +366,7 @@ class WorldFactsDatabaseMaker {
 
 	}
 
-	getStructureQualPosition(positions)
+	getStructureAbsPosition(positions)
 	{
 		// describe position on map
 		return this.getMapZone(positions[0]);
