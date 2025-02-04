@@ -21,13 +21,13 @@ class ConstraintSolver {
 		console.log("STARTING");
 
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
-		let attempts = 1;
+		let numAttempts = 1;
 
-		while (attempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
+		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
 			if (y === -1 && x === -1) {
-				this.output = this.waveMatrixToImage(waveMatrix, patterns);
 				console.log("solved!");
+				this.output = this.waveMatrixToImage(waveMatrix, patterns);
 				break;
 			}
 
@@ -37,16 +37,16 @@ class ConstraintSolver {
 			if (contradictionCreated) {
 				console.log("restarting");
 				waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
-				attempts++;
+				numAttempts++;
 			}
 		}
 
-		if (attempts > this.maxAttempts) {
+		if (numAttempts > this.maxAttempts) {
 			console.log("max attempts reached");
 			return false;
 		}
 		else {
-			console.log("took " + attempts + " attempt(s)");
+			console.log("took " + numAttempts + " attempt(s)");
 			return true;
 		}
 	}
@@ -61,13 +61,15 @@ class ConstraintSolver {
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
 		const waveMatrix = [];
+		for (let y = 0; y < outputHeight; y++) {
+			waveMatrix[y] = [];
+		}
 		const possiblePatterns = [];
 		for (let i = 0; i < numPatterns; i++) {
 			possiblePatterns.push(i);
 		}
 
 		for (let y = 0; y < outputHeight; y++) {
-			waveMatrix[y] = [];
 			for (let x = 0; x < outputWidth; x++) {
 				waveMatrix[y][x] = possiblePatterns.slice();	// make a copy
 			}
@@ -76,7 +78,7 @@ class ConstraintSolver {
 	}
 
 	/**
-	 * Get the position of the cell with the least Shannon Entropy but whose entropy is not 0. If all cells are solved, returns [-1, -1].
+	 * Get the position of the cell with the least entropy that's not 0. If all cells are solved, returns [-1, -1].
 	 * @param {number[][][]} waveMatrix
 	 * @param {number[]} weights
 	 * @returns {number[]} [y, x] if there's an unsolved cell or [-1, -1] if there aren't any
@@ -91,9 +93,12 @@ class ConstraintSolver {
 
 		for (let y = 0; y < waveMatrix.length; y++) {
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const possiblePatterns = waveMatrix[y][x];
-				const entropy = this.getEntropy(possiblePatterns, weights);
-				if (entropy < leastEntropy && entropy > 0) {
+
+				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
+				if (isNaN(entropy)) {
+					throw new Error("Contradiction found while searching for least entropy cell position");
+				}
+				else if (entropy < leastEntropy && entropy > 0) {
 					leastEntropy = entropy;
 					leastEntropyCellPositions = [[y, x]];
 				}
@@ -105,7 +110,7 @@ class ConstraintSolver {
 
 		const len = leastEntropyCellPositions.length;
 		if (len > 0) {
-			return leastEntropyCellPositions[Math.floor(Math.random() * len)];
+			return leastEntropyCellPositions[Math.floor(Math.random() * len)];	// random element (cell position)
 		}
 		else {
 			return [-1, -1];
@@ -118,7 +123,7 @@ class ConstraintSolver {
 	 * @param {number[]} weights 
 	 * @returns {number} a number greater than 0 if possiblePatterns.length > 1, 0 if possiblePatterns.length is 1, and NaN if possiblePatterns.length is 0
 	 */
-	getEntropy(possiblePatterns, weights) {
+	getShannonEntropy(possiblePatterns, weights) {
 		let sumOfWeights = 0;
 		let sumOfWeightLogWeights = 0;
 		for (const patternIndex of possiblePatterns) {
@@ -139,7 +144,7 @@ class ConstraintSolver {
 	observe(waveMatrix, y, x, weights) {
 		// used https://dev.to/jacktt/understanding-the-weighted-random-algorithm-581p
 		const possiblePatterns = waveMatrix[y][x];
-		const possiblePatternWeights = [];
+		const possiblePatternWeights = [];	// parallel with possiblePatterns
 		let totalWeight = 0;
 		for (const patternIndex of possiblePatterns) {
 			const weight = weights[patternIndex];
@@ -174,51 +179,54 @@ class ConstraintSolver {
 		const queue = [[y, x]];
 
 		while (queue.length > 0) {
-			const [y, x] = queue.shift();
-			const cellPossiblePatterns = waveMatrix[y][x];
-			console.log("shift");
+			console.log("dequeing");
+			const [y1, x1] = queue.shift();
+			const cell1_PossiblePatterns = waveMatrix[y1][x1];
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				/*
-					Given cell1 which is at (y, x) and cell2 which is at (y+dy, x+dx)
-					Build a set of all new possible patterns cell2 can be using the adjacency data of cell1's possible patterns
-					Compare the new set for cell2 with cell2's current set of possible patterns
+					Given cell1 which is at (y1, x1) and is adjacent to cell2 which is at (y2, x2)
+					Use the adjacency data of cell1's possible patterns to build a new set of all possible patterns cell2 can be
+					Compare the new set for cell2 against cell2's current set of possible patterns
 					Get a final new set that's the intersection of the two (set of possible patterns that are both in the new and current one)
 
-					If the final new set is empty, there are no possible patterns cell2 can be - return contradiction
-					If the final new set is the same size as the current set, there are no changes - do nothing
-					If the final new set is smaller than the current set, there were changes - add cell2 to the queue
+					If the final new set is the same size as the current set: there were no changes - do nothing
+					If the final new set is empty: there are no possible patterns cell2 can be - return contradiction
+					If the final new set is smaller than the current set: there were changes - add cell2 to the queue to be propagated
 				*/
 				const dir = DIRECTIONS[k];
 				const dy = -dir[0];	// need to reverse direction or else output will be upside down
 				const dx = -dir[1];	// need to reverse direction or else output will be upside down
+				const y2 = y1+dy;
+				const x2 = x1+dx;
 
 				// Don't go out of bounds
-				if (y+dy < 0 || y+dy > waveMatrix.length-1) {
+				if (y2 < 0 || y2 > waveMatrix.length-1) {
 					continue;
 				}
-				if (x+dx < 0 || x+dx > waveMatrix[0].length-1) {
+				if (x2 < 0 || x2 > waveMatrix[0].length-1) {
 					continue;
 				}
 
-				const cellAdjPatterns = new Set();
-				for (const patternIndex of cellPossiblePatterns) {
-					const adjPatterns = adjacencies[patternIndex][k];
-					for (const patternIndex of adjPatterns) {
-						cellAdjPatterns.add(patternIndex);
+				const cell2_PossiblePatterns = new Set(waveMatrix[y1+dy][x1+dx]);
+
+				const cell2_NewPossiblePatterns = new Set();
+				for (const patternIndex of cell1_PossiblePatterns) {
+					const adjacentPatterns = adjacencies[patternIndex][k];
+					for (const patternIndex of adjacentPatterns) {
+						cell2_NewPossiblePatterns.add(patternIndex);
 					}
 				}
 
-				const adjCellPossiblePatterns = new Set(waveMatrix[y+dy][x+dx]);
-				const adjCellNewPossiblePatterns = cellAdjPatterns.intersection(adjCellPossiblePatterns);
+				const cell2_FinalNewPossiblePatterns = cell2_PossiblePatterns.intersection(cell2_NewPossiblePatterns);
 
-				if (adjCellNewPossiblePatterns.size === 0) {
+				if (cell2_FinalNewPossiblePatterns.size === 0) {
 					contraditionCreated = true;
 					break;
 				}
-				if (adjCellNewPossiblePatterns.size < adjCellPossiblePatterns.size) {
-					waveMatrix[y+dy][x+dx] = Array.from(adjCellNewPossiblePatterns);
-					queue.push([y+dy, x+dx]);
+				else if (cell2_FinalNewPossiblePatterns.size < cell2_PossiblePatterns.size) {
+					waveMatrix[y2][x2] = Array.from(cell2_FinalNewPossiblePatterns);
+					queue.push([y2, x2]);
 				}
 			}
 			if (contraditionCreated) {
@@ -230,15 +238,15 @@ class ConstraintSolver {
 
 	/** Build a 2D image matrix using the top left tile of each cell's pattern. */
 	waveMatrixToImage(waveMatrix, patterns) {
-		const result = [];
+		const image = [];
 		for (let y = 0; y < waveMatrix.length; y++) {
-			result[y] = [];
+			image[y] = [];
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const i = waveMatrix[y][x][0];
-				const tileID = patterns[i][0][0];
-				result[y][x] = tileID;
+				const patternIndex = waveMatrix[y][x][0];
+				const tileID = patterns[patternIndex][0][0];
+				image[y][x] = tileID;
 			}
 		}
-		return result;
+		return image;
 	}
 }
