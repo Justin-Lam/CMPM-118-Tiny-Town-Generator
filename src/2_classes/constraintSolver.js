@@ -20,11 +20,22 @@ class ConstraintSolver {
 	solve(patterns, weights, adjacencies, outputWidth, outputHeight) {
 		console.log("STARTING");
 
+		let start = 0;
+		let duration = 0;
+		let getLeastEntropyUnsolvedCellPosition_TotalDuration = 0;
+		let getLeastEntropyUnsolvedCellPosition_NumCalls = 0;
+		let propagate_TotalDuration = 0;
+		let propagate_NumCalls = 0;
+
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
 		let numAttempts = 1;
 
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
+			start = performance.now();
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
+			duration = performance.now() - start;
+			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
+			getLeastEntropyUnsolvedCellPosition_NumCalls++;
 			if (y === -1 && x === -1) {
 				console.log("solved!");
 				this.output = this.waveMatrixToImage(waveMatrix, patterns);
@@ -33,13 +44,29 @@ class ConstraintSolver {
 
 			this.observe(waveMatrix, y, x, weights);
 
+			start = performance.now();
 			const contradictionCreated = this.propagate(waveMatrix, y, x, adjacencies);
+			duration = performance.now() - start;
+			propagate_TotalDuration += duration;
+			propagate_NumCalls++;
 			if (contradictionCreated) {
 				console.log("restarting");
 				waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
 				numAttempts++;
 			}
 		}
+
+		console.log(`
+getLeastEntropyUnsolvedCellPosition():
+	total duration: ${getLeastEntropyUnsolvedCellPosition_TotalDuration} ms
+	num calls: ${getLeastEntropyUnsolvedCellPosition_NumCalls}
+	average duration: ${(getLeastEntropyUnsolvedCellPosition_TotalDuration / getLeastEntropyUnsolvedCellPosition_NumCalls).toFixed(3)} ms
+
+propagate():
+	total duration: ${propagate_TotalDuration} ms
+	num calls: ${propagate_NumCalls}
+	average duration: ${(propagate_TotalDuration / propagate_NumCalls).toFixed(3)} ms
+		`);
 
 		if (numAttempts > this.maxAttempts) {
 			console.log("max attempts reached");
@@ -175,12 +202,12 @@ class ConstraintSolver {
 	 * @returns {boolean} whether a contradiction was created or not
 	 */
 	propagate(waveMatrix, y, x, adjacencies) {
-		let contraditionCreated = false;
-		const queue = [[y, x]];
+		const queue = new Queue();
+		queue.enqueue([y, x]);
 
 		while (queue.length > 0) {
-			console.log("dequeing");
-			const [y1, x1] = queue.shift();
+			console.log("dequeueing");
+			const [y1, x1] = queue.dequeue();
 			const cell1_PossiblePatterns = waveMatrix[y1][x1];
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
@@ -201,39 +228,29 @@ class ConstraintSolver {
 				const x2 = x1+dx;
 
 				// Don't go out of bounds
-				if (y2 < 0 || y2 > waveMatrix.length-1) {
-					continue;
-				}
-				if (x2 < 0 || x2 > waveMatrix[0].length-1) {
-					continue;
-				}
+				if (y2 < 0 || y2 > waveMatrix.length-1) continue;
+				if (x2 < 0 || x2 > waveMatrix[0].length-1) continue;
 
-				const cell2_PossiblePatterns = new Set(waveMatrix[y1+dy][x1+dx]);
+				const cell2_PossiblePatterns = waveMatrix[y2][x2];
 
-				const cell2_NewPossiblePatterns = new Set();
+				const cell1_AdjacentPatterns = new Set();
 				for (const patternIndex of cell1_PossiblePatterns) {
 					const adjacentPatterns = adjacencies[patternIndex][k];
 					for (const patternIndex of adjacentPatterns) {
-						cell2_NewPossiblePatterns.add(patternIndex);
+						cell1_AdjacentPatterns.add(patternIndex);
 					}
 				}
 
-				const cell2_FinalNewPossiblePatterns = cell2_PossiblePatterns.intersection(cell2_NewPossiblePatterns);
+				const cell2_NewPossiblePatterns = cell2_PossiblePatterns.filter(patternIndex => cell1_AdjacentPatterns.has(patternIndex));
 
-				if (cell2_FinalNewPossiblePatterns.size === 0) {
-					contraditionCreated = true;
-					break;
+				if (cell2_NewPossiblePatterns.length === 0) return true;	// contradiction created
+				else if (cell2_NewPossiblePatterns.length < cell2_PossiblePatterns.length) {
+					waveMatrix[y2][x2] = cell2_NewPossiblePatterns;
+					queue.enqueue([y2, x2]);
 				}
-				else if (cell2_FinalNewPossiblePatterns.size < cell2_PossiblePatterns.size) {
-					waveMatrix[y2][x2] = Array.from(cell2_FinalNewPossiblePatterns);
-					queue.push([y2, x2]);
-				}
-			}
-			if (contraditionCreated) {
-				break;
 			}
 		}
-		return contraditionCreated;
+		return false;	// no contradiction created
 	}
 
 	/** Build a 2D image matrix using the top left tile of each cell's pattern. */
