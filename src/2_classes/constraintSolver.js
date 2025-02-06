@@ -8,8 +8,6 @@ class ConstraintSolver {
 	// Parameter
 	maxAttempts = 10;
 
-	numLoops = 0;
-
 	/**
 	 * Attempts to populate this.output.
 	 * @param {number[][][]} patterns
@@ -24,27 +22,25 @@ class ConstraintSolver {
 
 		let start = 0;
 		let duration = 0;
+		let createWaveMatrix_TotalDuration = 0;
+		let createWaveMatrix_NumCalls = 0;
 		let getLeastEntropyUnsolvedCellPosition_TotalDuration = 0;
 		let getLeastEntropyUnsolvedCellPosition_NumCalls = 0;
+		let observe_TotalDuration = 0;
+		let observe_NumCalls = 0;
 		let propagate_TotalDuration = 0;
 		let propagate_NumCalls = 0;
 
+		start = performance.now();
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
+		duration = performance.now() - start;
+		createWaveMatrix_TotalDuration += duration;
+		createWaveMatrix_NumCalls++;
 		let numAttempts = 1;
-		this.numLoops = 0;
 
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			start = performance.now();
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
-			if (this.numLoops === 900) {
-				console.log(y, x);
-				console.log(waveMatrix[y][x]);
-			}
-			if (this.numLoops === 1000) {
-				console.log(y, x);
-				console.log(waveMatrix[y][x]);
-				return false;
-			}
 			duration = performance.now() - start;
 			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
 			getLeastEntropyUnsolvedCellPosition_NumCalls++;
@@ -54,7 +50,11 @@ class ConstraintSolver {
 				break;
 			}
 
+			start = performance.now();
 			this.observe(waveMatrix, y, x, weights);
+			duration = performance.now() - start;
+			observe_TotalDuration += duration;
+			observe_NumCalls++;
 
 			console.log("propagating...");
 			start = performance.now();
@@ -64,18 +64,30 @@ class ConstraintSolver {
 			propagate_NumCalls++;
 			if (contradictionCreated) {
 				console.log("restarting");
+				start = performance.now();
 				waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
+				duration = performance.now() - start;
+				createWaveMatrix_TotalDuration += duration;
+				createWaveMatrix_NumCalls++;
 				numAttempts++;
 			}
-
-			this.numLoops++;
 		}
 
 		console.log(`
+createWaveMatrix():
+	total duration: ${createWaveMatrix_TotalDuration} ms
+	num calls: ${createWaveMatrix_NumCalls}
+	average duration: ${(createWaveMatrix_TotalDuration / createWaveMatrix_NumCalls).toFixed(3)} ms
+
 getLeastEntropyUnsolvedCellPosition():
 	total duration: ${getLeastEntropyUnsolvedCellPosition_TotalDuration} ms
 	num calls: ${getLeastEntropyUnsolvedCellPosition_NumCalls}
 	average duration: ${(getLeastEntropyUnsolvedCellPosition_TotalDuration / getLeastEntropyUnsolvedCellPosition_NumCalls).toFixed(3)} ms
+
+observe():
+	total duration: ${observe_TotalDuration} ms
+	num calls: ${observe_NumCalls}
+	average duration: ${(observe_TotalDuration / observe_NumCalls).toFixed(3)} ms
 
 propagate():
 	total duration: ${propagate_TotalDuration} ms
