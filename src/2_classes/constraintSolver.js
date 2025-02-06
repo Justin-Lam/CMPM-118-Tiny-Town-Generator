@@ -44,6 +44,7 @@ class ConstraintSolver {
 
 			this.observe(waveMatrix, y, x, weights);
 
+			console.log("propagating...");
 			start = performance.now();
 			const contradictionCreated = this.propagate(waveMatrix, y, x, adjacencies);
 			duration = performance.now() - start;
@@ -206,7 +207,6 @@ propagate():
 		queue.enqueue([y, x]);
 
 		while (queue.length > 0) {
-			console.log("dequeueing");
 			const [y1, x1] = queue.dequeue();
 			const cell1_PossiblePatterns = waveMatrix[y1][x1];
 
