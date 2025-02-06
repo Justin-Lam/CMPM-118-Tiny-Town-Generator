@@ -18,7 +18,7 @@ class ConstraintSolver {
 	 * @returns {boolean} whether the constraint solver was successful or not
 	 */
 	solve(patterns, weights, adjacencies, outputWidth, outputHeight) {
-		console.log("STARTING");
+		console.log("starting");
 
 		let start = 0;
 		let duration = 0;
@@ -29,10 +29,16 @@ class ConstraintSolver {
 
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
 		let numAttempts = 1;
+		let numLoops = 0;
 
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			start = performance.now();
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
+			if (numLoops === 1000) {
+				console.log(y, x);
+				console.log(waveMatrix[y][x]);
+				return false;
+			}
 			duration = performance.now() - start;
 			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
 			getLeastEntropyUnsolvedCellPosition_NumCalls++;
@@ -55,6 +61,8 @@ class ConstraintSolver {
 				waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
 				numAttempts++;
 			}
+
+			numLoops++;
 		}
 
 		console.log(`

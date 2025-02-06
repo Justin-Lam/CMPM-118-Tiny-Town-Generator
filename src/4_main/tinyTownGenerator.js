@@ -3,8 +3,8 @@ class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 
 	cs = new ConstraintSolver();
-	outputWidth = 24;
-	outputHeight = 15;
+	outputWidth = 8;
+	outputHeight = 5;
 
 	numRuns = 10;	// for this.getAverageRuntime()
 
@@ -15,13 +15,16 @@ class TinyTownGenerator extends Phaser.Scene {
 	preload() {
 		this.load.setPath("./assets/");
 		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap2.tmj");
+		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap.tmj");
 	}
 
 	create()
 	{
 		this.setupControls();
 		this.showInputImage();
+
+		this.ip.process(IMAGES_STRUCTURES, this.N);
+		console.log(this.ip);
 	}
 
 	showInputImage() {
@@ -72,29 +75,25 @@ class TinyTownGenerator extends Phaser.Scene {
 		let patterns;
 		let weights;
 		let adjacencies;
-		let result;
+		let generationWasSuccessful;
 
-		console.log("Ground");
-		this.ip.process(MAP1_GROUND, this.N);
+		console.log("Processing ground");
+		this.ip.process(IMAGES_GROUND, this.N);
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
-		result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
-		if (!result) {
-			return;
-		}
-		let groundImage = this.cs.output;
+		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		if (!generationWasSuccessful) return;
+		const groundImage = this.cs.output;
 
 		console.log("Structures");
-		this.ip.process(MAP3_STRUCTURES, this.N);
+		this.ip.process(IMAGES_STRUCTURES, this.N);
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
-		result = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
-		if (!result) {
-			return;
-		}
-		let structuresImage = this.cs.output;
+		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		if (!generationWasSuccessful) return;
+		const structuresImage = this.cs.output;
 
 		this.showImages(groundImage, structuresImage);
 	}
