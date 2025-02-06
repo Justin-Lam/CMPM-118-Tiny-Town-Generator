@@ -82,7 +82,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 		this.setupControls();
 
 		const image = this.IMAGES[this.currentImageIndex];
-		this.ip.process(image, this.N);
+		this.ip.process([image], this.N);
 		this.updateAdjacencies();
 		this.showImage(image);
 		this.showAdjacency();
@@ -197,7 +197,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 		this.currentAdjacencyIndex = 0;
 
 		const image = this.IMAGES[this.currentImageIndex];
-		this.ip.process(image, this.N);
+		this.ip.process([image], this.N);
 		this.updateAdjacencies();
 		this.showImage(image);
 		this.showAdjacency();
@@ -237,7 +237,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 		this.N += di;
 		this.currentAdjacencyIndex = 0;
 
-		this.ip.process(image, this.N);
+		this.ip.process([image], this.N);
 		this.updateAdjacencies();
 		this.showAdjacency();
 

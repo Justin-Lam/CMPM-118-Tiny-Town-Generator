@@ -25,42 +25,13 @@ class ImageProcessor {
 
 	/**
 	 * Populates this.patterns, this.adjacencies, and this.weights.
-	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number[][]} images an array of 2D tile ID matrices each representing a layer of a tilemap
 	 * @param {number} N the desired width of the resulting square patterns
 	 */
-	process(image, N) {
-		this.validateInput(image, N);
+	process(images, N) {
 		this.resetVariables();
-		this.getPatternsAndWeights(image, N);
+		this.getPatternsAndWeights(images, N);
 		this.getAdjacencies();
-	}
-
-	/**
-	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
-	 * @param {number} N the desired width of the resulting square patterns
-	 */
-	validateInput(image, N) {
-		if (!image) {
-			throw new Error("Image is undefined");
-		}
-		if (image.length < 1) {
-			throw new Error("Image height is less than 1.");
-		}
-		if (image[0].length < 1) {
-			throw new Error("Image width is less than 1.");
-		}
-		if (!N) {
-			throw new Error("N is undefined");
-		}
-		if (N < 2) {
-			throw new Error("N is less than 2.");
-		}
-		if (N > image.length) {
-			throw new Error("N is greater than image height.");
-		}
-		if (N > image[0].length) {
-			throw new Error("N is greater than image width.");
-		}
 	}
 
 	resetVariables() {
@@ -70,34 +41,38 @@ class ImageProcessor {
 	}
 
 	/**
-	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number[][]} images an array of 2D tile ID matrices each representing a layer of a tilemap
 	 * @param {number} N the desired width of the resulting square patterns
 	 */
-	getPatternsAndWeights(image, N) {
+	getPatternsAndWeights(images, N) {
 		/*
 			Have to get patterns and weights together because we want this.patterns to only have unique ones
 			When we find duplicates, we need to throw them out and increment the original pattern's weight
 			Using a map will let us filter out duplicates and know which index in this.weights to increment
 		*/
 		const uniquePatterns = new Map();	// <pattern, index>
-		for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
-			for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
-				const pattern = this.getPattern(image, N, y, x);
-				const patternStr = pattern.toString();		// need to convert to string because maps compare arrays using their pointers
-				if (uniquePatterns.has(patternStr)) {
-					this.weights[uniquePatterns.get(patternStr)]++;
-				}
-				else {
-					this.patterns.push(pattern);
-					this.weights.push(1);
-					uniquePatterns.set(patternStr, this.patterns.length-1);
+		for (const image of images) {
+			for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
+				for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
+					const pattern = this.getPattern(image, N, y, x);
+					const patternStr = pattern.toString();		// need to convert to string because maps compare arrays using their pointers
+					if (uniquePatterns.has(patternStr)) {
+						const patternIndex = uniquePatterns.get(patternStr);
+						this.weights[patternIndex]++;
+					}
+					else {
+						this.patterns.push(pattern);
+						this.weights.push(1);
+						uniquePatterns.set(patternStr, this.patterns.length-1);
+					}
 				}
 			}
 		}
+		
 	}
 
 	/**
-	 * @param {number[][]} image a 2D matrix of tile IDs representing the layer of a tilemap
+	 * @param {number[][]} image a 2D matrix of tile IDs representing a layer of a tilemap
 	 * @param {number} N the desired width of the resulting square patterns
 	 * @param {number} y the y position in the image of the top left tile of the pattern
 	 * @param {number} x the x position in the image of the top left tile of the pattern
