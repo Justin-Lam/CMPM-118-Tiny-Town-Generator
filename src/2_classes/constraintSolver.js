@@ -8,6 +8,8 @@ class ConstraintSolver {
 	// Parameter
 	maxAttempts = 10;
 
+	numLoops = 0;
+
 	/**
 	 * Attempts to populate this.output.
 	 * @param {number[][][]} patterns
@@ -29,12 +31,16 @@ class ConstraintSolver {
 
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
 		let numAttempts = 1;
-		let numLoops = 0;
+		this.numLoops = 0;
 
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			start = performance.now();
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
-			if (numLoops === 1000) {
+			if (this.numLoops === 900) {
+				console.log(y, x);
+				console.log(waveMatrix[y][x]);
+			}
+			if (this.numLoops === 1000) {
 				console.log(y, x);
 				console.log(waveMatrix[y][x]);
 				return false;
@@ -62,7 +68,7 @@ class ConstraintSolver {
 				numAttempts++;
 			}
 
-			numLoops++;
+			this.numLoops++;
 		}
 
 		console.log(`
@@ -96,16 +102,14 @@ propagate():
 	 * @returns {number[][][]} 2D matrix of cells (number arrays)
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
-		const waveMatrix = [];
-		for (let y = 0; y < outputHeight; y++) {
-			waveMatrix[y] = [];
-		}
 		const possiblePatterns = [];
 		for (let i = 0; i < numPatterns; i++) {
 			possiblePatterns.push(i);
 		}
 
+		const waveMatrix = [];
 		for (let y = 0; y < outputHeight; y++) {
+			waveMatrix[y] = [];
 			for (let x = 0; x < outputWidth; x++) {
 				waveMatrix[y][x] = possiblePatterns.slice();	// make a copy
 			}
@@ -129,12 +133,8 @@ propagate():
 
 		for (let y = 0; y < waveMatrix.length; y++) {
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-
 				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
-				if (isNaN(entropy)) {
-					throw new Error("Contradiction found while searching for least entropy cell position");
-				}
-				else if (entropy < leastEntropy && entropy > 0) {
+				if (entropy < leastEntropy && entropy > 0) {
 					leastEntropy = entropy;
 					leastEntropyCellPositions = [[y, x]];
 				}
@@ -157,9 +157,12 @@ propagate():
 	 * Gets the Shannon Entropy of a cell using its possible patterns and those patterns' weights.
 	 * @param {number[]} possiblePatterns 
 	 * @param {number[]} weights 
-	 * @returns {number} a number greater than 0 if possiblePatterns.length > 1, 0 if possiblePatterns.length is 1, and NaN if possiblePatterns.length is 0
+	 * @returns {number}
 	 */
 	getShannonEntropy(possiblePatterns, weights) {
+		if (possiblePatterns.length === 0) throw new Error("Contradiction found.");
+		if (possiblePatterns.length === 1) return 0;	// what the calculated result would be
+
 		let sumOfWeights = 0;
 		let sumOfWeightLogWeights = 0;
 		for (const patternIndex of possiblePatterns) {
