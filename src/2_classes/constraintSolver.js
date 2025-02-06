@@ -212,14 +212,15 @@ propagate():
 
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				/*
-					Given cell1 which is at (y1, x1) and is adjacent to cell2 which is at (y2, x2)
-					Use the adjacency data of cell1's possible patterns to build a new set of all possible patterns cell2 can be
-					Compare the new set for cell2 against cell2's current set of possible patterns
-					Get a final new set that's the intersection of the two (set of possible patterns that are both in the new and current one)
+					Given two adjacent cells: cell1 at (y1, x1) and cell2 at (y2, x2)
 
-					If the final new set is the same size as the current set: there were no changes - do nothing
-					If the final new set is empty: there are no possible patterns cell2 can be - return contradiction
-					If the final new set is smaller than the current set: there were changes - add cell2 to the queue to be propagated
+					Get cell2's currernt possible patterns
+					Use the adjacency data of cell1's possible patterns to build a set of all possible patterns cell2 can be
+					Create an array for cell2's new possible patterns by taking the shared elements between the two aforementioned data structures 
+
+					If cell2's new possible patterns is the same size as its current: there were no changes - do nothing
+					If cell2's new possible patterns is empty: there are no possible patterns cell2 can be - return contradiction
+					If cell2's new possible patterns is smaller than its current: there were changes - enqueue cell2 so its adjacent cells can also be adjusted
 				*/
 				const dir = DIRECTIONS[k];
 				const dy = -dir[0];	// need to reverse direction or else output will be upside down

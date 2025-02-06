@@ -29,6 +29,7 @@ Queue.prototype.enqueue = function(data) {
 	this.length++;
 };
 
+/** @returns {any | null} the element at the head of the queue or null if the queue is empty */
 Queue.prototype.dequeue = function() {
 	if (this.length === 0) {
 		return null;
