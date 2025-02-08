@@ -1,11 +1,10 @@
 class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
-	N = 2;
-
 	cs = new ConstraintSolver();
+	mapIndex = 1;
+	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
-
 	numRuns = 10;	// for this.getAverageRuntime()
 
 	constructor() {
@@ -14,8 +13,8 @@ class TinyTownGenerator extends Phaser.Scene {
 
 	preload() {
 		this.load.setPath("./assets/");
-		this.load.image("tilemap_tiles", "tilemap_packed.png");
-		this.load.tilemapTiledJSON("tinyTownMap", "tinyTownMap1.tmj");
+		this.load.image("tilemap", "tinyTown_Tilemap_Packed.png");
+		this.load.tilemapTiledJSON("tinyTownMap", `map${this.mapIndex}.tmj`);
 	}
 
 	create()
@@ -26,18 +25,20 @@ class TinyTownGenerator extends Phaser.Scene {
 
 	showInputImage() {
 		this.multiLayerMap = this.add.tilemap("tinyTownMap", 16, 16, 40, 25);
-		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap_tiles");
+		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap");
 
-		// Use the following for custom maps:
-		this.groundLayer = this.multiLayerMap.createLayer("Ground", this.tileset, 0, 0);
-		this.structuresLayer = this.multiLayerMap.createLayer("Structures", this.tileset, 0, 0);
-		this.multiLayerMapLayers = [this.groundLayer, this.structuresLayer];
-
-		// Use the following for three-farmhouses:
-		//this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
-		//this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
-		//this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
-		//this.multiLayerMapLayers = [this.groundLayer, this.treesLayer, this.housesLayer];
+		// Use the following for map2+:
+		if (this.mapIndex === 1) {
+			this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
+			this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
+			this.housesLayer = this.multiLayerMap.createLayer("Houses-n-Fences", this.tileset, 0, 0);
+			this.multiLayerMapLayers = [this.groundLayer, this.treesLayer, this.housesLayer];
+		}
+		else {
+			this.groundLayer = this.multiLayerMap.createLayer("Ground", this.tileset, 0, 0);
+			this.structuresLayer = this.multiLayerMap.createLayer("Structures", this.tileset, 0, 0);
+			this.multiLayerMapLayers = [this.groundLayer, this.structuresLayer];
+		}
 	}
 
 	setupControls() {
