@@ -94,7 +94,7 @@ class ImageProcessorDemo extends Phaser.Scene {
 		const patterns = this.ip.patterns;
 		const weights = this.ip.weights;
 		const adjacencies = this.ip.adjacencies;
-		cs.solve(patterns, weights, adjacencies, 2, 2);
+		cs.solve(patterns, weights, adjacencies, 3, 3);
 	}
 
 	updateAdjacencies() {

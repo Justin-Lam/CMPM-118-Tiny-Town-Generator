@@ -56,8 +56,6 @@ class ConstraintSolver {
 			observe_TotalDuration += duration;
 			observe_NumCalls++;
 
-			return false;
-
 			console.log("propagating...");
 			start = performance.now();
 			const contradictionCreated = this.propagate(waveMatrix, y, x, adjacencies);
@@ -136,7 +134,7 @@ waveMatrixToImage():
 	 * @param {number} numPatterns 
 	 * @param {number} outputWidth
 	 * @param {number} outputHeight
-	 * @returns {number[][][]} 2D matrix of cells (number arrays)
+	 * @returns {Uint32Array[][]} 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
 		/*
@@ -164,7 +162,7 @@ waveMatrixToImage():
 
 	/**
 	 * Picks a pattern for a cell to become using weighted random.
-	 * @param {number[][][]} waveMatrix
+	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
 	 * @param {number} y 
 	 * @param {number} x 
 	 * @param {number[]} weights 
@@ -201,7 +199,7 @@ waveMatrixToImage():
 
 	/**
 	 * Adjusts all cells' possible patterns if they need to be adjusted due to the observation of a cell.
-	 * @param {number[][][]} waveMatrix
+	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
 	 * @param {number} y 
 	 * @param {number} x
 	 * @param {Uint32Array[][]} adjacencies
@@ -213,8 +211,8 @@ waveMatrixToImage():
 
 		while (queue.length > 0) {
 			const [y1, x1] = queue.dequeue();
-			const cell1_PossiblePatterns = waveMatrix[y1][x1];
-
+			const cell1_PossiblePatterns = bitmaskArrayToPatternIndexArray(waveMatrix[y1][x1]);
+			
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				/*
 					Given two adjacent cells: cell1 at (y1, x1) and cell2 at (y2, x2)
@@ -239,18 +237,37 @@ waveMatrixToImage():
 
 				const cell2_PossiblePatterns = waveMatrix[y2][x2];
 
-				const cell1_AdjacentPatterns = new Set();
+				const numInts = Math.ceil(adjacencies.length/32);
+				const cell1_AdjacentPatterns = new Uint32Array(numInts)
 				for (const patternIndex of cell1_PossiblePatterns) {
-					const adjacentPatterns = adjacencies[patternIndex][k];
-					for (const patternIndex of adjacentPatterns) {
-						cell1_AdjacentPatterns.add(patternIndex);
+					const bitmaskArray = adjacencies[patternIndex][k];
+					for (let i = 0; i < bitmaskArray.length; i++) {
+						cell1_AdjacentPatterns[i] |= bitmaskArray[i];
 					}
 				}
 
-				const cell2_NewPossiblePatterns = cell2_PossiblePatterns.filter(patternIndex => cell1_AdjacentPatterns.has(patternIndex));
+				const cell2_NewPossiblePatterns = new Uint32Array(numInts);
+				for (let i = 0; i < cell2_NewPossiblePatterns.length; i++) {
+					cell2_NewPossiblePatterns[i] = cell2_PossiblePatterns[i] & cell1_AdjacentPatterns[i];
+				}
 
-				if (cell2_NewPossiblePatterns.length === 0) return true;	// contradiction created
-				else if (cell2_NewPossiblePatterns.length < cell2_PossiblePatterns.length) {
+				let contradictionCreated = true;
+				for (const bitmask of cell2_NewPossiblePatterns) {
+					if (bitmask !== 0) {
+						contradictionCreated = false;
+						break;
+					}
+				}
+				if (contradictionCreated) return true;
+				
+				let cell2Changed = false;
+				for (let i = 0; i < cell2_NewPossiblePatterns.length; i++) {
+					if (cell2_NewPossiblePatterns[i] !== cell2_PossiblePatterns[i]) {
+						cell2Changed = true;
+						break;
+					}
+				}
+				if (cell2Changed) {
 					waveMatrix[y2][x2] = cell2_NewPossiblePatterns;
 					queue.enqueue([y2, x2]);
 				}
@@ -261,7 +278,7 @@ waveMatrixToImage():
 
 	/**
 	 * Get the position of the cell with the least entropy that's not 0. If all cells are solved, returns [-1, -1].
-	 * @param {number[][][]} waveMatrix
+	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
 	 * @param {number[]} weights
 	 * @returns {number[]} [y, x] if there's an unsolved cell or [-1, -1] if there aren't any
 	 */
