@@ -319,12 +319,14 @@ waveMatrixToImage():
 	 * @returns {number}
 	 */
 	getShannonEntropy(possiblePatterns, weights) {
-		if (possiblePatterns.length === 0) throw new Error("Contradiction found.");
-		if (possiblePatterns.length === 1) return 0;	// what the calculated result would be
+		const possiblePatterns_PatternIndexArray = bitmaskArrayToPatternIndexArray(possiblePatterns);
+		
+		if (possiblePatterns_PatternIndexArray.length === 0) throw new Error("Contradiction found.");
+		if (possiblePatterns_PatternIndexArray.length === 1) return 0;	// what the calculated result would be
 
 		let sumOfWeights = 0;
 		let sumOfWeightLogWeights = 0;
-		for (const patternIndex of possiblePatterns) {
+		for (const patternIndex of possiblePatterns_PatternIndexArray) {
 			const weight = weights[patternIndex];
 			sumOfWeights += weight;
 			sumOfWeightLogWeights += weight * Math.log(weight);
@@ -332,13 +334,19 @@ waveMatrixToImage():
 		return Math.log(sumOfWeights) - sumOfWeightLogWeights/sumOfWeights;
 	}
 
-	/** Build a 2D image matrix using the top left tile of each cell's pattern. */
+	/**
+	 * Build a 2D image matrix using the top left tile of each cell's pattern.
+	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @param {number[][][]} patterns 
+	 * @returns {number[][]}
+	 */
 	waveMatrixToImage(waveMatrix, patterns) {
 		const image = [];
 		for (let y = 0; y < waveMatrix.length; y++) {
 			image[y] = [];
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const patternIndex = waveMatrix[y][x][0];
+				const patternIndexArray = bitmaskArrayToPatternIndexArray(waveMatrix[y][x]);
+				const patternIndex = patternIndexArray[0];
 				const tileID = patterns[patternIndex][0][0];
 				image[y][x] = tileID;
 			}
