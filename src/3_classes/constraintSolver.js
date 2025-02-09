@@ -40,24 +40,18 @@ class ConstraintSolver {
 		createWaveMatrix_NumCalls++;
 		let numAttempts = 1;
 
-		console.log(waveMatrix);
-		for (let y = 0; y < outputHeight; y++) {
-			for (let x = 0; x < outputWidth; x++) {
-				console.log("CELL AT", y, x);
-				const bitmaskArray = waveMatrix[y][x];
-				for (const bitmask of bitmaskArray) {
-					console.log("\t", bitmask.toString(2));
-				}
-			}
-		}
-		return false;
 
+		let y = Math.floor(Math.random() * outputHeight);
+		let x = Math.floor(Math.random() * outputWidth);
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			start = performance.now();
 			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
 			duration = performance.now() - start;
 			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
 			getLeastEntropyUnsolvedCellPosition_NumCalls++;
+
+			return false;
+
 			if (y === -1 && x === -1) {
 				console.log("solved!");
 				start = performance.now();
@@ -198,7 +192,7 @@ waveMatrixToImage():
 
 	/**
 	 * Gets the Shannon Entropy of a cell using its possible patterns and those patterns' weights.
-	 * @param {number[]} possiblePatterns 
+	 * @param {Uint32Array} possiblePatterns 
 	 * @param {number[]} weights 
 	 * @returns {number}
 	 */
