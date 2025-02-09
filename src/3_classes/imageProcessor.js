@@ -124,6 +124,7 @@ class ImageProcessor {
 
 	/**
 	 * Determines if p1 is to the {dir} of p2. The result also tells if p2 is to the {opposite dir} of p1.
+	 * @param {number} i pattern 1 index
 	 * @param {number} j pattern 2 index
 	 * @param {number} k direction index
 	 * @returns {boolean}

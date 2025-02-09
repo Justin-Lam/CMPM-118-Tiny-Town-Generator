@@ -40,33 +40,23 @@ class ConstraintSolver {
 		createWaveMatrix_NumCalls++;
 		let numAttempts = 1;
 
+		/*
+			Since the very first cell to observe and propagate will always be a random one
+			We can just choose a random cell instead of using getLeastEntropyUnsolvedCellPosition() to get one
+			This means we get to skip a getLeastEntropyUnsolvedCellPosition() call
+			Which is nice because calling that function on an initialized wave matrix (every cell has all patterns possible) gives it worst case runtime
+		*/
+		let y = Math.floor(Math.random() * outputHeight);	// random in range [0, outputHeight-1]
+		let x = Math.floor(Math.random() * outputWidth);	// random in range [0, outputWidth-1]
 
-		let y = Math.floor(Math.random() * outputHeight);
-		let x = Math.floor(Math.random() * outputWidth);
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
-			start = performance.now();
-			const [y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
-			duration = performance.now() - start;
-			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
-			getLeastEntropyUnsolvedCellPosition_NumCalls++;
-
-			return false;
-
-			if (y === -1 && x === -1) {
-				console.log("solved!");
-				start = performance.now();
-				this.output = this.waveMatrixToImage(waveMatrix, patterns);
-				duration = performance.now() - start;
-				waveMatrixToImage_TotalDuration += duration;
-				waveMatrixToImage_NumCalls++;
-				break;
-			}
-
 			start = performance.now();
 			this.observe(waveMatrix, y, x, weights);
 			duration = performance.now() - start;
 			observe_TotalDuration += duration;
 			observe_NumCalls++;
+
+			return false;
 
 			console.log("propagating...");
 			start = performance.now();
@@ -81,7 +71,25 @@ class ConstraintSolver {
 				duration = performance.now() - start;
 				createWaveMatrix_TotalDuration += duration;
 				createWaveMatrix_NumCalls++;
+				y = Math.floor(Math.random() * outputHeight);	// random in range [0, outputHeight-1]
+				x = Math.floor(Math.random() * outputWidth);	// random in range [0, outputWidth-1]
 				numAttempts++;
+				continue;
+			}
+
+			start = performance.now();
+			[y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
+			duration = performance.now() - start;
+			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
+			getLeastEntropyUnsolvedCellPosition_NumCalls++;
+			if (y === -1 && x === -1) {
+				console.log("solved!");
+				start = performance.now();
+				this.output = this.waveMatrixToImage(waveMatrix, patterns);
+				duration = performance.now() - start;
+				waveMatrixToImage_TotalDuration += duration;
+				waveMatrixToImage_NumCalls++;
+				break;
 			}
 		}
 
@@ -155,62 +163,6 @@ waveMatrixToImage():
 	}
 
 	/**
-	 * Get the position of the cell with the least entropy that's not 0. If all cells are solved, returns [-1, -1].
-	 * @param {number[][][]} waveMatrix
-	 * @param {number[]} weights
-	 * @returns {number[]} [y, x] if there's an unsolved cell or [-1, -1] if there aren't any
-	 */
-	getLeastEntropyUnsolvedCellPosition(waveMatrix, weights) {
-		/*
-			Build an array containing the positions of all cells tied with the least entropy
-			Return a random position from that array
-		*/
-		let leastEntropy = Infinity;
-		let leastEntropyCellPositions = [];
-
-		for (let y = 0; y < waveMatrix.length; y++) {
-			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
-				if (entropy < leastEntropy && entropy > 0) {
-					leastEntropy = entropy;
-					leastEntropyCellPositions = [[y, x]];
-				}
-				else if (entropy === leastEntropy) {
-					leastEntropyCellPositions.push([y, x]);
-				}
-			}
-		}
-
-		const len = leastEntropyCellPositions.length;
-		if (len > 0) {
-			return leastEntropyCellPositions[Math.floor(Math.random() * len)];	// random element (cell position)
-		}
-		else {
-			return [-1, -1];
-		}
-	}
-
-	/**
-	 * Gets the Shannon Entropy of a cell using its possible patterns and those patterns' weights.
-	 * @param {Uint32Array} possiblePatterns 
-	 * @param {number[]} weights 
-	 * @returns {number}
-	 */
-	getShannonEntropy(possiblePatterns, weights) {
-		if (possiblePatterns.length === 0) throw new Error("Contradiction found.");
-		if (possiblePatterns.length === 1) return 0;	// what the calculated result would be
-
-		let sumOfWeights = 0;
-		let sumOfWeightLogWeights = 0;
-		for (const patternIndex of possiblePatterns) {
-			const weight = weights[patternIndex];
-			sumOfWeights += weight;
-			sumOfWeightLogWeights += weight * Math.log(weight);
-		}
-		return Math.log(sumOfWeights) - sumOfWeightLogWeights/sumOfWeights;
-	}
-
-	/**
 	 * Picks a pattern for a cell to become using weighted random.
 	 * @param {number[][][]} waveMatrix
 	 * @param {number} y 
@@ -219,7 +171,7 @@ waveMatrixToImage():
 	 */
 	observe(waveMatrix, y, x, weights) {
 		// used https://dev.to/jacktt/understanding-the-weighted-random-algorithm-581p
-		const possiblePatterns = waveMatrix[y][x];
+		const possiblePatterns = bitmaskArrayToPatternIndexArray(waveMatrix[y][x]);
 		const possiblePatternWeights = [];	// parallel with possiblePatterns
 		let totalWeight = 0;
 		for (const patternIndex of possiblePatterns) {
@@ -235,7 +187,12 @@ waveMatrixToImage():
 			cursor += possiblePatternWeights[i];
 			if (cursor >= random) {
 				const chosenPattern = possiblePatterns[i];
-				waveMatrix[y][x] = [chosenPattern];
+
+				waveMatrix[y][x].fill(0);	// set all bits to 0
+				const bitmaskArrayIndex = Math.floor(chosenPattern/32);
+				const bitmask = 1 << chosenPattern;	// pattern to bitmask
+				waveMatrix[y][x][bitmaskArrayIndex] |= bitmask;
+
 				return;
 			}
 		}
@@ -300,6 +257,62 @@ waveMatrixToImage():
 			}
 		}
 		return false;	// no contradiction created
+	}
+
+	/**
+	 * Get the position of the cell with the least entropy that's not 0. If all cells are solved, returns [-1, -1].
+	 * @param {number[][][]} waveMatrix
+	 * @param {number[]} weights
+	 * @returns {number[]} [y, x] if there's an unsolved cell or [-1, -1] if there aren't any
+	 */
+	getLeastEntropyUnsolvedCellPosition(waveMatrix, weights) {
+		/*
+			Build an array containing the positions of all cells tied with the least entropy
+			Return a random position from that array
+		*/
+		let leastEntropy = Infinity;
+		let leastEntropyCellPositions = [];
+
+		for (let y = 0; y < waveMatrix.length; y++) {
+			for (let x = 0; x < waveMatrix[0].length; x++) {
+				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
+				if (entropy < leastEntropy && entropy > 0) {
+					leastEntropy = entropy;
+					leastEntropyCellPositions = [[y, x]];
+				}
+				else if (entropy === leastEntropy) {
+					leastEntropyCellPositions.push([y, x]);
+				}
+			}
+		}
+
+		const len = leastEntropyCellPositions.length;
+		if (len > 0) {
+			return leastEntropyCellPositions[Math.floor(Math.random() * len)];	// random element (cell position)
+		}
+		else {
+			return [-1, -1];
+		}
+	}
+
+	/**
+	 * Gets the Shannon Entropy of a cell using its possible patterns and those patterns' weights.
+	 * @param {Uint32Array} possiblePatterns 
+	 * @param {number[]} weights 
+	 * @returns {number}
+	 */
+	getShannonEntropy(possiblePatterns, weights) {
+		if (possiblePatterns.length === 0) throw new Error("Contradiction found.");
+		if (possiblePatterns.length === 1) return 0;	// what the calculated result would be
+
+		let sumOfWeights = 0;
+		let sumOfWeightLogWeights = 0;
+		for (const patternIndex of possiblePatterns) {
+			const weight = weights[patternIndex];
+			sumOfWeights += weight;
+			sumOfWeightLogWeights += weight * Math.log(weight);
+		}
+		return Math.log(sumOfWeights) - sumOfWeightLogWeights/sumOfWeights;
 	}
 
 	/** Build a 2D image matrix using the top left tile of each cell's pattern. */
