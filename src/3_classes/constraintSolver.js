@@ -12,7 +12,7 @@ class ConstraintSolver {
 	 * Attempts to populate this.output.
 	 * @param {number[][][]} patterns
 	 * @param {number[]} weights 
-	 * @param {number[][][]} adjacencies 
+	 * @param {Uint32Array[][]} adjacencies
 	 * @param {number} outputWidth
 	 * @param {number} outputHeight
 	 * @returns {boolean} whether the constraint solver was successful or not
@@ -30,6 +30,8 @@ class ConstraintSolver {
 		let observe_NumCalls = 0;
 		let propagate_TotalDuration = 0;
 		let propagate_NumCalls = 0;
+		let waveMatrixToImage_TotalDuration = 0;
+		let waveMatrixToImage_NumCalls = 0;
 
 		start = performance.now();
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
@@ -37,6 +39,18 @@ class ConstraintSolver {
 		createWaveMatrix_TotalDuration += duration;
 		createWaveMatrix_NumCalls++;
 		let numAttempts = 1;
+
+		console.log(waveMatrix);
+		for (let y = 0; y < outputHeight; y++) {
+			for (let x = 0; x < outputWidth; x++) {
+				console.log("CELL AT", y, x);
+				const bitmaskArray = waveMatrix[y][x];
+				for (const bitmask of bitmaskArray) {
+					console.log("\t", bitmask.toString(2));
+				}
+			}
+		}
+		return false;
 
 		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
 			start = performance.now();
@@ -46,7 +60,11 @@ class ConstraintSolver {
 			getLeastEntropyUnsolvedCellPosition_NumCalls++;
 			if (y === -1 && x === -1) {
 				console.log("solved!");
+				start = performance.now();
 				this.output = this.waveMatrixToImage(waveMatrix, patterns);
+				duration = performance.now() - start;
+				waveMatrixToImage_TotalDuration += duration;
+				waveMatrixToImage_NumCalls++;
 				break;
 			}
 
@@ -93,6 +111,11 @@ propagate():
 	total duration: ${propagate_TotalDuration} ms
 	num calls: ${propagate_NumCalls}
 	average duration: ${(propagate_TotalDuration / propagate_NumCalls).toFixed(3)} ms
+
+waveMatrixToImage():
+	total duration: ${waveMatrixToImage_TotalDuration} ms
+	num calls: ${waveMatrixToImage_NumCalls}
+	average duration: ${(waveMatrixToImage_TotalDuration / waveMatrixToImage_NumCalls).toFixed(3)} ms
 		`);
 
 		if (numAttempts > this.maxAttempts) {
@@ -114,16 +137,24 @@ propagate():
 	 * @returns {number[][][]} 2D matrix of cells (number arrays)
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
-		const possiblePatterns = [];
+		/*
+			Create a bitmask array initialized to have all patterns be possible
+			That means setting every bit with a corresponding pattern to 1 (leave all other bits at 0)
+			Create the wave matrix and set each cell to be a copy of the bitmask array
+		*/
+		const numInts = Math.ceil(numPatterns/32);
+		const bitmaskArray = new Uint32Array(numInts);
 		for (let i = 0; i < numPatterns; i++) {
-			possiblePatterns.push(i);
+			const bitmaskArrayIndex = Math.floor(i/32);
+			const bitmask_i = 1 << i;	// pattern to bitmask
+			bitmaskArray[bitmaskArrayIndex] |= bitmask_i;
 		}
 
 		const waveMatrix = [];
 		for (let y = 0; y < outputHeight; y++) {
 			waveMatrix[y] = [];
 			for (let x = 0; x < outputWidth; x++) {
-				waveMatrix[y][x] = possiblePatterns.slice();	// make a copy
+				waveMatrix[y][x] = bitmaskArray.slice();	// make a copy
 			}
 		}
 		return waveMatrix;
@@ -222,7 +253,7 @@ propagate():
 	 * @param {number[][][]} waveMatrix
 	 * @param {number} y 
 	 * @param {number} x
-	 * @param {number[][][]} adjacencies
+	 * @param {Uint32Array[][]} adjacencies
 	 * @returns {boolean} whether a contradiction was created or not
 	 */
 	propagate(waveMatrix, y, x, adjacencies) {

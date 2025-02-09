@@ -103,7 +103,7 @@ class ImageProcessor {
 			this.adjacencies.push( [ bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice() ] );
 		}
 
-		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);
+		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input a direction index k to get the opposite direction index o
 
 		for (let i = 0; i < this.patterns.length; i++) {
 			for (let j = i+1; j < this.patterns.length; j++) {
@@ -113,7 +113,7 @@ class ImageProcessor {
 						const bitmaskArrayIndex_j = Math.floor(j/32);
 						const bitmask_i = 1 << i;	// pattern to bitmask
 						const bitmask_j = 1 << j;	// pattern to bitmask
-						const o = oppositeDirIndex.get(k);	// o is the opposite direction of k
+						const o = oppositeDirIndex.get(k);
 						this.adjacencies[i][k][bitmaskArrayIndex_j] |= bitmask_j;	// add j
 						this.adjacencies[j][o][bitmaskArrayIndex_i] |= bitmask_i;	// add i
 					}

@@ -21,9 +21,6 @@ class TinyTownGenerator extends Phaser.Scene {
 	{
 		this.setupControls();
 		this.showInputImage();
-
-		this.ip.process(IMAGES_STRUCTURES, 2);
-		console.log(this.ip);
 	}
 
 	showInputImage() {
