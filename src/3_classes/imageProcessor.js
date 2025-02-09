@@ -19,7 +19,7 @@ class ImageProcessor {
 	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
 	 * upAdjacencies = [ 1, 3, ... ]
 	 * ```
-	 * @type {number[][][]}
+	 * @type {Uint32Array[][]} an array (i = pattern index) of arrays (i = direction index) of Uint32Array, where each Uint32Array is an array of bitmasks
 	*/
 	adjacencies;
 
@@ -96,20 +96,26 @@ class ImageProcessor {
 			We don't need to check combos that we've already done
 			Hence why j starts at i+1
 		*/
+		const numInts = Math.ceil(this.patterns.length/32);
+		const bitmaskArray = new Uint32Array(numInts);
+
 		for (const pattern of this.patterns) {
-			this.adjacencies.push([ [], [], [], [] ]);
+			this.adjacencies.push( [ bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice() ] );
 		}
+
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);
+
 		for (let i = 0; i < this.patterns.length; i++) {
 			for (let j = i+1; j < this.patterns.length; j++) {
 				for (let k = 0; k < DIRECTIONS.length; k++) {
-					const p1 = this.patterns[i];
-					const p2 = this.patterns[j];
-					const dir = DIRECTIONS[k];
-					if (this.isAdjacent(p1, p2, dir)) {
-						const o = oppositeDirIndex.get(k);
-						this.adjacencies[i][k].push(j);
-						this.adjacencies[j][o].push(i);
+					if (this.isAdjacent(i, j, k)) {
+						const bitmaskArrayIndex_i = Math.floor(i/32);
+						const bitmaskArrayIndex_j = Math.floor(j/32);
+						const bitmask_i = 1 << i;	// pattern to bitmask
+						const bitmask_j = 1 << j;	// pattern to bitmask
+						const o = oppositeDirIndex.get(k);	// o is the opposite direction of k
+						this.adjacencies[i][k][bitmaskArrayIndex_j] |= bitmask_j;	// add j
+						this.adjacencies[j][o][bitmaskArrayIndex_i] |= bitmask_i;	// add i
 					}
 				}
 			}
@@ -117,13 +123,12 @@ class ImageProcessor {
 	}
 
 	/**
-	 * Returns whether p1 is to the {dir} of p2. The result also tells whether p2 is to the {opposite dir} of p1.
-	 * @param {number[][]} p1 pattern 1
-	 * @param {number[][]} p2 pattern 2
-	 * @param {number[]} dir direction
+	 * Determines if p1 is to the {dir} of p2. The result also tells if p2 is to the {opposite dir} of p1.
+	 * @param {number} j pattern 2 index
+	 * @param {number} k direction index
 	 * @returns {boolean}
 	 */
-	isAdjacent(p1, p2, dir) {
+	isAdjacent(i, j, k) {
 		/*
 			Check if the patterns overlap, for example:
 			Suppose dir is UP ([-1, 0])
@@ -136,6 +141,9 @@ class ImageProcessor {
 
 			If every number in p1 matches with its corresponding number in p2, then p1 is to the top of p2
 		*/
+		const p1 = this.patterns[i];
+		const p2 = this.patterns[j];
+		const dir = DIRECTIONS[k];
 		const start = new Map([[-1, 1], [1, 0], [0, 0]]);
 		const end = new Map([[-1, 0], [1, -1], [0, 0]]);
 		const dy = dir[0];
