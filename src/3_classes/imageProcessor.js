@@ -19,7 +19,7 @@ class ImageProcessor {
 	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
 	 * upAdjacencies = [ 1, 3, ... ]
 	 * ```
-	 * @type {Uint32Array[][]} an array (i = pattern index) of arrays (i = direction index) of Uint32Array, where each Uint32Array is an array of bitmasks
+	 * @type {BigInt[][]} an array (i = pattern index) of arrays (i = direction index) of BigInt bitmasks which store a pattern's adjacent patterns in a direction
 	*/
 	adjacencies;
 
@@ -96,26 +96,21 @@ class ImageProcessor {
 			We don't need to check combos that we've already done
 			Hence why j starts at i+1
 		*/
-		const numInts = Math.ceil(this.patterns.length/32);
-		const bitmaskArray = new Uint32Array(numInts);
 
-		for (const pattern of this.patterns) {
-			this.adjacencies.push( [ bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice(), bitmaskArray.slice() ] );
-		}
+		// Initialize this.adjacencies with bitmasks with bits set to 0
+		for (const pattern of this.patterns) this.adjacencies.push([0n, 0n, 0n, 0n]);
 
-		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input a direction index k to get the opposite direction index o
+		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input direction index k to get opposite direction index o
 
 		for (let i = 0; i < this.patterns.length; i++) {
 			for (let j = i+1; j < this.patterns.length; j++) {
 				for (let k = 0; k < DIRECTIONS.length; k++) {
 					if (this.isAdjacent(i, j, k)) {
-						const bitmaskArrayIndex_i = Math.floor(i/32);
-						const bitmaskArrayIndex_j = Math.floor(j/32);
-						const bitmask_i = 1 << i;	// pattern to bitmask
-						const bitmask_j = 1 << j;	// pattern to bitmask
+						// Convert i and j from pattern indices to bitmasks
+						// Then add them to the adjacency bitmasks
 						const o = oppositeDirIndex.get(k);
-						this.adjacencies[i][k][bitmaskArrayIndex_j] |= bitmask_j;	// add j
-						this.adjacencies[j][o][bitmaskArrayIndex_i] |= bitmask_i;	// add i
+						this.adjacencies[i][k] |= (1n << j);
+						this.adjacencies[j][o] |= (1n << i);
 					}
 				}
 			}
