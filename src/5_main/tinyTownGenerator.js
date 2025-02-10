@@ -5,6 +5,7 @@ class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
+	maxAttempts = 10;
 	numRuns = 10;	// for this.getAverageRuntime()
 
 	constructor() {
@@ -80,7 +81,7 @@ class TinyTownGenerator extends Phaser.Scene {
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
-		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight, this.maxAttempts);
 		if (!generationWasSuccessful) return;
 		const groundImage = this.cs.output;
 
@@ -89,7 +90,7 @@ class TinyTownGenerator extends Phaser.Scene {
 		patterns = this.ip.patterns;
 		weights = this.ip.weights
 		adjacencies = this.ip.adjacencies;
-		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight);
+		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight, this.maxAttempts);
 		if (!generationWasSuccessful) return;
 		const structuresImage = this.cs.output;
 
