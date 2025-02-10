@@ -1,13 +1,16 @@
 /*
-	Note on why queue is implemented via function instead of class:
-	Queue via array (using shift), function, and class are all basically the same speed when length is less than 10,000
-	However, queue via function seems to be ever so slightly faster than the others, hence we're going to use it
+	Note on why queue is implemented via object (which is made via constructor function) instead of class:
+	Queue via array (using shift), object, and class are all basically the same speed when length is less than 10,000
+	However, queue via object seems to be ever so slightly faster than the others, hence we're going to use it
 */
+
+/** Creates a Node object. */
 const Node = function(data) {
 	this.data = data;
 	this.next = null;
 };
 
+/** Creates a Queue object. */
 const Queue = function() {
 	this.head = null;
 	this.tail = null;
