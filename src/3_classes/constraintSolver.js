@@ -246,7 +246,7 @@ waveMatrixToImage():
 
 	/**
 	 * Get the position of the cell with the least entropy that's not 0. If all cells are solved, returns [-1, -1].
-	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @param {Bitmask[][]} waveMatrix 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 * @param {number[]} weights
 	 * @returns {number[]} [y, x] if there's an unsolved cell or [-1, -1] if there aren't any
 	 */
@@ -282,22 +282,22 @@ waveMatrixToImage():
 
 	/**
 	 * Gets the Shannon Entropy of a cell using its possible patterns and those patterns' weights.
-	 * @param {Uint32Array} possiblePatterns 
+	 * @param {Bitmask} possiblePatterns_Bitmask 
 	 * @param {number[]} weights 
 	 * @returns {number}
 	 */
-	getShannonEntropy(possiblePatterns, weights) {
-		const possiblePatterns_PatternIndexArray = bitmaskArrayToPatternIndexArray(possiblePatterns);
+	getShannonEntropy(possiblePatterns_Bitmask, weights) {
+		const possiblePatterns_Array = possiblePatterns_Bitmask.toArray();
 		
-		if (possiblePatterns_PatternIndexArray.length === 0) throw new Error("Contradiction found.");
-		if (possiblePatterns_PatternIndexArray.length === 1) return 0;	// what the calculated result would be
+		if (possiblePatterns_Array.length === 0) throw new Error("Contradiction found.");
+		if (possiblePatterns_Array.length === 1) return 0;	// what the calculated result would have been
 
 		let sumOfWeights = 0;
 		let sumOfWeightLogWeights = 0;
-		for (const patternIndex of possiblePatterns_PatternIndexArray) {
-			const weight = weights[patternIndex];
-			sumOfWeights += weight;
-			sumOfWeightLogWeights += weight * Math.log(weight);
+		for (const i of possiblePatterns_Array) {
+			const w = weights[i];
+			sumOfWeights += w;
+			sumOfWeightLogWeights += w * Math.log(w);
 		}
 		return Math.log(sumOfWeights) - sumOfWeightLogWeights/sumOfWeights;
 	}
