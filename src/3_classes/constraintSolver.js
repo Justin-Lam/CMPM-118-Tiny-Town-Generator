@@ -304,7 +304,7 @@ waveMatrixToImage():
 
 	/**
 	 * Build a 2D image matrix using the top left tile of each cell's pattern.
-	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @param {Bitmask[][]} waveMatrix 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 * @param {number[][][]} patterns 
 	 * @returns {number[][]}
 	 */
@@ -313,9 +313,9 @@ waveMatrixToImage():
 		for (let y = 0; y < waveMatrix.length; y++) {
 			image[y] = [];
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const patternIndexArray = bitmaskArrayToPatternIndexArray(waveMatrix[y][x]);
-				const patternIndex = patternIndexArray[0];
-				const tileID = patterns[patternIndex][0][0];
+				const possiblePatterns_Array = waveMatrix[y][x].toArray();
+				const i = possiblePatterns_Array[0];	// should be guaranteed to only have 1 possible pattern
+				const tileID = patterns[i][0][0];
 				image[y][x] = tileID;
 			}
 		}
