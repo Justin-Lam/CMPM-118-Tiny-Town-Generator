@@ -4,8 +4,8 @@
 */
 
 /** Represents either
- * 	an adjacency bitmask (which patterns are adjacent to a pattern in a direction),
- * 	or a possible patterns bitmask (which patterns can a cell be).
+ * 	an adjacent patterns Bitmask for a pattern (which patterns are adjacent to a pattern in a direction),
+ * 	or a possible patterns Bitmask for a cell (which patterns a cell can be).
 */
 class Bitmask {
 	value = 0n;	// BigInt
@@ -29,7 +29,45 @@ class Bitmask {
 	}
 
 	/**
-	 * Uses this Bitmask to create an array of set bit indices and returns it. Ex: 1010 (binary) -> [1, 3] (decimal).
+	 * Returns whether all bits are 0 or not.
+	 * @returns {boolean}
+	 */
+	allBitsUnset() {
+		return this.value = 0n;
+	}
+
+	/**
+	 * Sets any unset bits in this Bitmask that are set in the other Bitmask.
+	 * @param {Bitmask} other 
+	 */
+	combineWith(other) {
+		this.value |= other.value;
+	}
+
+	/**
+	 * Returns whether b1 === b2;
+	 * @param {Bitmask} b1 
+	 * @param {Bitmask} b2 
+	 * @returns {boolean}
+	 */
+	static EQUALS(b1, b2) {
+		return b1.value === b2.value;
+	}
+
+	/**
+	 * Creates and returns a new Bitmask that's the result of b1 AND b2.
+	 * @param {Bitmask} b1 
+	 * @param {Bitmask} b2 
+	 * @returns {Bitmask}
+	 */
+	static AND(b1, b2) {
+		const result = new Bitmask();
+		result.value = b1.value & b2.value;
+		return result;
+	}
+
+	/**
+	 * Uses this Bitmask to create and return an array of set bit indices. Ex: 1010 (binary) -> [1, 3] (decimal).
 	 * @returns {number[]}
 	 */
 	toArray() {

@@ -179,16 +179,16 @@ waveMatrixToImage():
 				return;
 			}
 		}
-		
+
 		throw new Error("A pattern wasn't chosen within the for loop");
 	}
 
 	/**
 	 * Adjusts all cells' possible patterns if they need to be adjusted due to the observation of a cell.
-	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @param {Bitmask[][]} waveMatrix 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 * @param {number} y 
 	 * @param {number} x
-	 * @param {Uint32Array[][]} adjacencies
+	 * @param {Bitmask[][]} adjacencies
 	 * @returns {boolean} whether a contradiction was created or not
 	 */
 	propagate(waveMatrix, y, x, adjacencies) {
@@ -197,7 +197,7 @@ waveMatrixToImage():
 
 		while (queue.length > 0) {
 			const [y1, x1] = queue.dequeue();
-			const cell1_PossiblePatterns = bitmaskArrayToPatternIndexArray(waveMatrix[y1][x1]);
+			const cell1_PossiblePatterns_Array = waveMatrix[y1][x1].toArray();
 			
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				/*
@@ -221,40 +221,22 @@ waveMatrixToImage():
 				if (y2 < 0 || y2 > waveMatrix.length-1) continue;
 				if (x2 < 0 || x2 > waveMatrix[0].length-1) continue;
 
-				const cell2_PossiblePatterns = waveMatrix[y2][x2];
+				const cell2_PossiblePatterns_Bitmask = waveMatrix[y2][x2];
 
-				const numInts = Math.ceil(adjacencies.length/32);
-				const cell1_AdjacentPatterns = new Uint32Array(numInts)
-				for (const patternIndex of cell1_PossiblePatterns) {
-					const bitmaskArray = adjacencies[patternIndex][k];
-					for (let i = 0; i < bitmaskArray.length; i++) {
-						cell1_AdjacentPatterns[i] |= bitmaskArray[i];
-					}
+				const cell1_PossibleAdjacentPatterns_Bitmask = new Bitmask();
+				for (const i of cell1_PossiblePatterns_Array) {
+					const i_AdjacentPatterns_Bitmask = adjacencies[i][k];
+					cell1_PossibleAdjacentPatterns_Bitmask.combineWith(i_AdjacentPatterns_Bitmask);
 				}
 
-				const cell2_NewPossiblePatterns = new Uint32Array(numInts);
-				for (let i = 0; i < cell2_NewPossiblePatterns.length; i++) {
-					cell2_NewPossiblePatterns[i] = cell2_PossiblePatterns[i] & cell1_AdjacentPatterns[i];
-				}
+				const cell2_NewPossiblePatterns_Bitmask = Bitmask.AND(cell2_PossiblePatterns_Bitmask, cell1_PossibleAdjacentPatterns_Bitmask);
 
-				let contradictionCreated = true;
-				for (const bitmask of cell2_NewPossiblePatterns) {
-					if (bitmask !== 0) {
-						contradictionCreated = false;
-						break;
-					}
-				}
+				const contradictionCreated = cell2_NewPossiblePatterns_Bitmask.allBitsUnset();
 				if (contradictionCreated) return true;
 				
-				let cell2Changed = false;
-				for (let i = 0; i < cell2_NewPossiblePatterns.length; i++) {
-					if (cell2_NewPossiblePatterns[i] !== cell2_PossiblePatterns[i]) {
-						cell2Changed = true;
-						break;
-					}
-				}
+				const cell2Changed = Bitmask.EQUALS(cell2_PossiblePatterns_Bitmask, cell2_NewPossiblePatterns_Bitmask)
 				if (cell2Changed) {
-					waveMatrix[y2][x2] = cell2_NewPossiblePatterns;
+					waveMatrix[y2][x2] = cell2_NewPossiblePatterns_Bitmask;
 					queue.enqueue([y2, x2]);
 				}
 			}

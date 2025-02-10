@@ -21,7 +21,7 @@ class ImageProcessor {
 	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
 	 * upAdjacencies = [ 1, 3, ... ]
 	 * ```
-	 * @type {Bitmask[][]} an array (i = pattern index) of arrays (i = direction index) of adjacency Bitmasks which store a pattern's adjacent patterns in a direction
+	 * @type {Bitmask[][]} an array (i = pattern index) of arrays (i = direction index) of adjacent patterns Bitmasks which store a pattern's adjacent patterns in a direction
 	*/
 	adjacencies;
 
@@ -99,7 +99,7 @@ class ImageProcessor {
 			Hence why j starts at i+1
 		*/
 
-		// Initialize this.adjacencies by populating it with initialized adjacency bitmasks (all bits set to 0)
+		// Initialize this.adjacencies by populating it with initialized adjacent patterns Bitmasks (all bits set to 0)
 		for (const pattern of this.patterns) this.adjacencies.push([
 			new Bitmask(),	// up
 			new Bitmask(),	// down
