@@ -4,9 +4,6 @@ class ConstraintSolver {
 	 * @type {number[][]}
 	 */
 	output;
-	
-	// Parameter
-	maxAttempts = 10;
 
 	/**
 	 * Attempts to populate this.output.
@@ -17,7 +14,7 @@ class ConstraintSolver {
 	 * @param {number} outputHeight
 	 * @returns {boolean} whether the constraint solver was successful or not
 	 */
-	solve(patterns, weights, adjacencies, outputWidth, outputHeight) {
+	solve(patterns, weights, adjacencies, outputWidth, outputHeight, maxAttempts) {
 		console.log("starting");
 
 		let start = 0;
@@ -49,7 +46,7 @@ class ConstraintSolver {
 		let y = Math.floor(Math.random() * outputHeight);	// random in range [0, outputHeight-1]
 		let x = Math.floor(Math.random() * outputWidth);	// random in range [0, outputWidth-1]
 
-		while (numAttempts <= this.maxAttempts) {	// use <= so this.maxAttempts can be 1
+		while (numAttempts <= maxAttempts) {	// use <= so maxAttempts can be 1
 			start = performance.now();
 			this.observe(waveMatrix, y, x, weights);
 			duration = performance.now() - start;
@@ -118,7 +115,7 @@ waveMatrixToImage():
 	average duration: ${(waveMatrixToImage_TotalDuration / waveMatrixToImage_NumCalls).toFixed(3)} ms
 		`);
 
-		if (numAttempts > this.maxAttempts) {
+		if (numAttempts > maxAttempts) {
 			console.log("max attempts reached");
 			return false;
 		}
