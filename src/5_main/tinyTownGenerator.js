@@ -22,6 +22,18 @@ class TinyTownGenerator extends Phaser.Scene {
 	{
 		this.setupControls();
 		this.showInputImage();
+
+		let bitmask = new Bitmask();
+		for (let i = 0; i < 1000; i++) bitmask.setBit(i);
+
+		const start = performance.now();
+
+		const a = bitmask.toArray();
+
+		const duration = performance.now() - start;
+
+		console.log(a);
+		console.log(duration, "ms");
 	}
 
 	showInputImage() {

@@ -9,7 +9,7 @@ class ConstraintSolver {
 	 * Attempts to populate this.output.
 	 * @param {number[][][]} patterns
 	 * @param {number[]} weights 
-	 * @param {Uint32Array[][]} adjacencies
+	 * @param {Bitmask[][]} adjacencies
 	 * @param {number} outputWidth
 	 * @param {number} outputHeight
 	 * @returns {boolean} whether the constraint solver was successful or not
@@ -131,7 +131,7 @@ waveMatrixToImage():
 	 * @param {number} numPatterns 
 	 * @param {number} outputWidth
 	 * @param {number} outputHeight
-	 * @returns {Uint32Array[][]} 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @returns {Bitmask[][]} 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
 		const allPatternsPossible = new Bitmask();
@@ -151,20 +151,21 @@ waveMatrixToImage():
 
 	/**
 	 * Picks a pattern for a cell to become using weighted random.
-	 * @param {Uint32Array[][]} waveMatrix 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
+	 * @param {Bitmask[][]} waveMatrix 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 * @param {number} y 
 	 * @param {number} x 
 	 * @param {number[]} weights 
 	 */
 	observe(waveMatrix, y, x, weights) {
 		// used https://dev.to/jacktt/understanding-the-weighted-random-algorithm-581p
-		const possiblePatterns = bitmaskArrayToPatternIndexArray(waveMatrix[y][x]);
-		const possiblePatternWeights = [];	// parallel with possiblePatterns
+
+		const possiblePatterns = waveMatrix[y][x].toArray();
+		const possiblePatternWeights = [];	// is parallel with possiblePatterns
 		let totalWeight = 0;
-		for (const patternIndex of possiblePatterns) {
-			const weight = weights[patternIndex];
-			possiblePatternWeights.push(weight);
-			totalWeight += weight;
+		for (const i of possiblePatterns) {
+			const w = weights[i];
+			possiblePatternWeights.push(w);
+			totalWeight += w;
 		}
 
 		const random = Math.random() * totalWeight;
@@ -173,16 +174,12 @@ waveMatrixToImage():
 		for (let i = 0; i < possiblePatternWeights.length; i++) {
 			cursor += possiblePatternWeights[i];
 			if (cursor >= random) {
-				const chosenPattern = possiblePatterns[i];
-
-				waveMatrix[y][x].fill(0);	// set all bits to 0
-				const bitmaskArrayIndex = Math.floor(chosenPattern/32);
-				const bitmask = 1 << chosenPattern;	// pattern to bitmask
-				waveMatrix[y][x][bitmaskArrayIndex] |= bitmask;
-
+				waveMatrix[y][x].clear();
+				waveMatrix[y][x].setBit(possiblePatterns[i]);
 				return;
 			}
 		}
+		
 		throw new Error("A pattern wasn't chosen within the for loop");
 	}
 

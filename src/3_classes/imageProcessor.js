@@ -3,13 +3,13 @@
 */
 class ImageProcessor {
 	/** 
-	 * Example: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
+	 * Ex: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
 	 * @type {number[][][]}
 	*/
 	patterns;
 
 	/**
-	 * Example: [ pattern0Weight, pattern1Weight, ... ]
+	 * Ex: [ pattern0Weight, pattern1Weight, ... ]
 	 * @type {number[]}
 	*/
 	weights;
