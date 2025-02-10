@@ -134,15 +134,16 @@ waveMatrixToImage():
 	 * @returns {Uint32Array[][]} 2D matrix of Uint32Arrays representing a cell's possbile patterns as an array of bitmasks
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
-		// Create a possible patterns bitmask initialized to have all patterns be possible
-		let bitmask = 0n;
-		for (let i = 0; i < numPatterns; i++) bitmask |= (1n << BigInt(i));
+		const allPatternsPossible = new Bitmask();
+		for (let i = 0; i < numPatterns; i++) bitmask.setBit(i);
 
 		const waveMatrix = [];
 		for (let y = 0; y < outputHeight; y++) {
 			waveMatrix[y] = [];
 			for (let x = 0; x < outputWidth; x++) {
-				waveMatrix[y][x] = bitmaskArray.slice();	// make a copy
+				const bitmask = new Bitmask();
+				bitmask.value = allPatternsPossible.value;
+				waveMatrix[y][x] = bitmask;
 			}
 		}
 		return waveMatrix;
