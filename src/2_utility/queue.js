@@ -1,50 +1,41 @@
-/*
-	Note on why queue is implemented via object (which is made via constructor function) instead of class:
-	Queue via array (using shift), object, and class are all basically the same speed when length is less than 10,000
-	However, queue via object seems to be ever so slightly faster than the others, hence we're going to use it
-*/
-
-/** Creates a Node object. */
-const Node = function(data) {
-	this.data = data;
-	this.next = null;
-};
-
-/** Creates a Queue object. */
-const Queue = function() {
-	this.head = null;
-	this.tail = null;
-	this.length = 0;
-};
-
-Queue.prototype.enqueue = function(data) {
-	const node = new Node(data);
-
-	if (this.length === 0) {
-		this.head = node;
-		this.tail = node;
+class Node {
+	constructor(data) {
+		this.data = data;
+		this.next = null;
 	}
-	else {
-		this.tail.next = node;
-		this.tail = node;
-	}
-	
-	this.length++;
-};
+}
 
-/** @returns {any | null} the element at the head of the queue or null if the queue is empty */
-Queue.prototype.dequeue = function() {
-	if (this.length === 0) {
-		return null;
+/** Utilizes a linked list for O(1) enqueueing/dequeueing. */
+class Queue {
+	head = null;
+	tail = null;
+	length = 0;
+
+	enqueue(data) {
+		const node = new Node(data);
+
+		if (this.length === 0) {
+			this.head = node;
+			this.tail = node;
+		}
+		else {
+			this.tail.next = node;
+			this.tail = node;
+		}
+		
+		this.length++;
 	}
 
-	const data = this.head.data;
-	this.head = this.head.next;
-	this.length--;
+	/** @returns {any | null} the element at the head of the queue or null if the queue is empty */
+	dequeue() {
+		if (this.length === 0) return null;
 
-	if (!this.head) {
-		this.tail = null;
+		const data = this.head.data;
+		this.head = this.head.next;
+		this.length--;
+
+		if (!this.head) this.tail = null;	// make tail match head
+
+		return data;
 	}
-
-	return data;
-};
+}
