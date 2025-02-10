@@ -1,4 +1,6 @@
-/** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
+/**	Processes images to get their patterns and those patterns' weights and adjacencies.
+ * 	Doesn't process images as periodic, and doesn't rotate or reflect patterns. 
+*/
 class ImageProcessor {
 	/** 
 	 * Example: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
@@ -19,7 +21,7 @@ class ImageProcessor {
 	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
 	 * upAdjacencies = [ 1, 3, ... ]
 	 * ```
-	 * @type {BigInt[][]} an array (i = pattern index) of arrays (i = direction index) of BigInt bitmasks which store a pattern's adjacent patterns in a direction
+	 * @type {Bitmask[][]} an array (i = pattern index) of arrays (i = direction index) of adjacency Bitmasks which store a pattern's adjacent patterns in a direction
 	*/
 	adjacencies;
 
@@ -97,8 +99,13 @@ class ImageProcessor {
 			Hence why j starts at i+1
 		*/
 
-		// Initialize this.adjacencies with bitmasks with bits set to 0
-		for (const pattern of this.patterns) this.adjacencies.push([0n, 0n, 0n, 0n]);
+		// Initialize this.adjacencies by populating it with initialized adjacency bitmasks (all bits set to 0)
+		for (const pattern of this.patterns) this.adjacencies.push([
+			new Bitmask(),	// up
+			new Bitmask(),	// down
+			new Bitmask(),	// left
+			new Bitmask()	// right
+		]);
 
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input direction index k to get opposite direction index o
 
@@ -106,11 +113,9 @@ class ImageProcessor {
 			for (let j = i+1; j < this.patterns.length; j++) {
 				for (let k = 0; k < DIRECTIONS.length; k++) {
 					if (this.isAdjacent(i, j, k)) {
-						// Convert i and j from pattern indices to bitmasks
-						// Then add them to the adjacency bitmasks
 						const o = oppositeDirIndex.get(k);
-						this.adjacencies[i][k] |= (1n << j);
-						this.adjacencies[j][o] |= (1n << i);
+						this.adjacencies[i][k].setBit(j);
+						this.adjacencies[j][o].setBit(i);
 					}
 				}
 			}
