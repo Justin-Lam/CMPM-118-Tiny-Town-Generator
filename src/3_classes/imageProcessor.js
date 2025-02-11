@@ -1,5 +1,5 @@
 /**	Processes images to get their patterns and those patterns' weights and adjacencies.
- * 	Doesn't process images as periodic, and doesn't rotate or reflect patterns. 
+ * 	Reflects patterns horizontally. Doesn't process images as periodic, and doesn't rotate patterns.
 */
 class ImageProcessor {
 	/** 
@@ -56,16 +56,29 @@ class ImageProcessor {
 		for (const image of images) {
 			for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
 				for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
-					const pattern = this.getPattern(image, N, y, x);
-					const patternStr = pattern.toString();		// need to convert to string because maps compare arrays using their pointers
-					if (uniquePatterns.has(patternStr)) {
-						const patternIndex = uniquePatterns.get(patternStr);
-						this.weights[patternIndex]++;
+
+					const p = this.getPattern(image, N, y, x);
+					const p_str = p.toString();		// need to convert to string because maps compare arrays using their pointers
+					if (uniquePatterns.has(p_str)) {
+						const i = uniquePatterns.get(p_str);
+						this.weights[i]++;
 					}
 					else {
-						this.patterns.push(pattern);
+						this.patterns.push(p);
 						this.weights.push(1);
-						uniquePatterns.set(patternStr, this.patterns.length-1);
+						uniquePatterns.set(p_str, this.patterns.length-1);
+					}
+
+					const p_reflected = this.reflectHorizontally(p);
+					const p_reflected_str = p_reflected.toString();	// need to convert to string because maps compare arrays using their pointers
+					if (uniquePatterns.has(p_reflected_str)) {
+						const i = uniquePatterns.get(p_reflected_str);
+						this.weights[i]++;
+					}
+					else {
+						this.patterns.push(p_reflected);
+						this.weights.push(1);
+						uniquePatterns.set(p_reflected_str, this.patterns.length-1);
 					}
 				}
 			}
@@ -89,6 +102,15 @@ class ImageProcessor {
 			}
 		}
 		return pattern;
+	}
+
+	/**
+	 * Creates and returns a 2D matrix that's a copy of p but with each row reversed.
+	 * @param {number[][]} p pattern
+	 * @returns {number[][]}
+	 */
+	reflectHorizontally(p) {
+		return p.map(row => row.slice().reverse());
 	}
 
 	getAdjacencies() {
