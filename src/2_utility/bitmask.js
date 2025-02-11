@@ -33,7 +33,7 @@ class Bitmask {
 	 * @returns {boolean}
 	 */
 	allBitsUnset() {
-		return this.value = 0n;
+		return this.value === 0n;
 	}
 
 	/**

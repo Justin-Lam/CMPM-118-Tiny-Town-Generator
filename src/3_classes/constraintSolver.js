@@ -5,6 +5,21 @@ class ConstraintSolver {
 	 */
 	output;
 
+	start;
+	duration;
+	createWaveMatrix_TotalDuration;
+	createWaveMatrix_NumCalls;
+	getLeastEntropyUnsolvedCellPosition_TotalDuration;
+	getLeastEntropyUnsolvedCellPosition_NumCalls;
+	getShannonEntropy_TotalDuration;
+	getShannonEntropy_NumCalls;
+	observe_TotalDuration;
+	observe_NumCalls;
+	propagate_TotalDuration;
+	propagate_NumCalls;
+	waveMatrixToImage_TotalDuration;
+	waveMatrixToImage_NumCalls;
+
 	/**
 	 * Attempts to populate this.output.
 	 * @param {number[][][]} patterns
@@ -15,26 +30,28 @@ class ConstraintSolver {
 	 * @returns {boolean} whether the constraint solver was successful or not
 	 */
 	solve(patterns, weights, adjacencies, outputWidth, outputHeight, maxAttempts) {
+		this.start = 0;
+		this.duration = 0;
+		this.createWaveMatrix_TotalDuration = 0;
+		this.createWaveMatrix_NumCalls = 0;
+		this.getLeastEntropyUnsolvedCellPosition_TotalDuration = 0;
+		this.getLeastEntropyUnsolvedCellPosition_NumCalls = 0;
+		this.getShannonEntropy_TotalDuration = 0;
+		this.getShannonEntropy_NumCalls = 0;
+		this.observe_TotalDuration = 0;
+		this.observe_NumCalls = 0;
+		this.propagate_TotalDuration = 0;
+		this.propagate_NumCalls = 0;
+		this.waveMatrixToImage_TotalDuration = 0;
+		this.waveMatrixToImage_NumCalls = 0;
+
 		console.log("starting");
 
-		let start = 0;
-		let duration = 0;
-		let createWaveMatrix_TotalDuration = 0;
-		let createWaveMatrix_NumCalls = 0;
-		let getLeastEntropyUnsolvedCellPosition_TotalDuration = 0;
-		let getLeastEntropyUnsolvedCellPosition_NumCalls = 0;
-		let observe_TotalDuration = 0;
-		let observe_NumCalls = 0;
-		let propagate_TotalDuration = 0;
-		let propagate_NumCalls = 0;
-		let waveMatrixToImage_TotalDuration = 0;
-		let waveMatrixToImage_NumCalls = 0;
-
-		start = performance.now();
+		this.start = performance.now();
 		let waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
-		duration = performance.now() - start;
-		createWaveMatrix_TotalDuration += duration;
-		createWaveMatrix_NumCalls++;
+		this.duration = performance.now() - this.start;
+		this.createWaveMatrix_TotalDuration += this.duration;
+		this.createWaveMatrix_NumCalls++;
 		let numAttempts = 1;
 
 		/*
@@ -47,72 +64,78 @@ class ConstraintSolver {
 		let x = Math.floor(Math.random() * outputWidth);	// random in range [0, outputWidth-1]
 
 		while (numAttempts <= maxAttempts) {	// use <= so maxAttempts can be 1
-			start = performance.now();
+			this.start = performance.now();
 			this.observe(waveMatrix, y, x, weights);
-			duration = performance.now() - start;
-			observe_TotalDuration += duration;
-			observe_NumCalls++;
+			this.duration = performance.now() - this.start;
+			this.observe_TotalDuration += this.duration;
+			this.observe_NumCalls++;
 
 			console.log("propagating...");
-			start = performance.now();
+			this.start = performance.now();
 			const contradictionCreated = this.propagate(waveMatrix, y, x, adjacencies);
-			duration = performance.now() - start;
-			propagate_TotalDuration += duration;
-			propagate_NumCalls++;
+			this.duration = performance.now() - this.start;
+			this.propagate_TotalDuration += this.duration;
+			this.propagate_NumCalls++;
 			if (contradictionCreated) {
 				console.log("restarting");
-				start = performance.now();
+				this.start = performance.now();
 				waveMatrix = this.createWaveMatrix(patterns.length, outputWidth, outputHeight);
-				duration = performance.now() - start;
-				createWaveMatrix_TotalDuration += duration;
-				createWaveMatrix_NumCalls++;
+				this.duration = performance.now() - this.start;
+				this.createWaveMatrix_TotalDuration += this.duration;
+				this.createWaveMatrix_NumCalls++;
 				y = Math.floor(Math.random() * outputHeight);	// random in range [0, outputHeight-1]
 				x = Math.floor(Math.random() * outputWidth);	// random in range [0, outputWidth-1]
 				numAttempts++;
 				continue;
 			}
 
-			start = performance.now();
+			this.start = performance.now();
 			[y, x] = this.getLeastEntropyUnsolvedCellPosition(waveMatrix, weights);
-			duration = performance.now() - start;
-			getLeastEntropyUnsolvedCellPosition_TotalDuration += duration;
-			getLeastEntropyUnsolvedCellPosition_NumCalls++;
+			this.duration = performance.now() - this.start;
+			this.getLeastEntropyUnsolvedCellPosition_TotalDuration += this.duration;
+			this.getLeastEntropyUnsolvedCellPosition_NumCalls++;
 			if (y === -1 && x === -1) {
 				console.log("solved!");
-				start = performance.now();
+				this.start = performance.now();
 				this.output = this.waveMatrixToImage(waveMatrix, patterns);
-				duration = performance.now() - start;
-				waveMatrixToImage_TotalDuration += duration;
-				waveMatrixToImage_NumCalls++;
+				this.duration = performance.now() - this.start;
+				this.waveMatrixToImage_TotalDuration += this.duration;
+				this.waveMatrixToImage_NumCalls++;
 				break;
 			}
 		}
 
+		this.getLeastEntropyUnsolvedCellPosition_TotalDuration -= this.getShannonEntropy_TotalDuration;
 		console.log(`
 createWaveMatrix():
-	total duration: ${createWaveMatrix_TotalDuration} ms
-	num calls: ${createWaveMatrix_NumCalls}
-	average duration: ${(createWaveMatrix_TotalDuration / createWaveMatrix_NumCalls).toFixed(3)} ms
+	total duration: ${this.createWaveMatrix_TotalDuration} ms
+	num calls: ${this.createWaveMatrix_NumCalls}
+	average duration: ${(this.createWaveMatrix_TotalDuration / this.createWaveMatrix_NumCalls).toFixed(3)} ms
 
 getLeastEntropyUnsolvedCellPosition():
-	total duration: ${getLeastEntropyUnsolvedCellPosition_TotalDuration} ms
-	num calls: ${getLeastEntropyUnsolvedCellPosition_NumCalls}
-	average duration: ${(getLeastEntropyUnsolvedCellPosition_TotalDuration / getLeastEntropyUnsolvedCellPosition_NumCalls).toFixed(3)} ms
+	total duration: ${this.getLeastEntropyUnsolvedCellPosition_TotalDuration} ms
+	num calls: ${this.getLeastEntropyUnsolvedCellPosition_NumCalls}
+	average duration: ${(this.getLeastEntropyUnsolvedCellPosition_TotalDuration / this.getLeastEntropyUnsolvedCellPosition_NumCalls).toFixed(3)} ms
+
+getShannonEntropy():
+	total duration: ${this.getShannonEntropy_TotalDuration} ms
+	num calls: ${this.getShannonEntropy_NumCalls}
+	average duration: ${(this.getShannonEntropy_TotalDuration / this.getShannonEntropy_NumCalls).toFixed(3)} ms
 
 observe():
-	total duration: ${observe_TotalDuration} ms
-	num calls: ${observe_NumCalls}
-	average duration: ${(observe_TotalDuration / observe_NumCalls).toFixed(3)} ms
+	total duration: ${this.observe_TotalDuration} ms
+	num calls: ${this.observe_NumCalls}
+	average duration: ${(this.observe_TotalDuration / this.observe_NumCalls).toFixed(3)} ms
 
 propagate():
-	total duration: ${propagate_TotalDuration} ms
-	num calls: ${propagate_NumCalls}
-	average duration: ${(propagate_TotalDuration / propagate_NumCalls).toFixed(3)} ms
+	total duration: ${this.propagate_TotalDuration} ms
+	num calls: ${this.propagate_NumCalls}
+	average duration: ${(this.propagate_TotalDuration / this.propagate_NumCalls).toFixed(3)} ms
 
 waveMatrixToImage():
-	total duration: ${waveMatrixToImage_TotalDuration} ms
-	num calls: ${waveMatrixToImage_NumCalls}
-	average duration: ${(waveMatrixToImage_TotalDuration / waveMatrixToImage_NumCalls).toFixed(3)} ms
+	total duration: ${this.waveMatrixToImage_TotalDuration} ms
+	num calls: ${this.waveMatrixToImage_NumCalls}
+	average duration: ${(this.waveMatrixToImage_TotalDuration / this.waveMatrixToImage_NumCalls).toFixed(3)} ms
 		`);
 
 		if (numAttempts > maxAttempts) {
@@ -135,7 +158,7 @@ waveMatrixToImage():
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
 		const allPatternsPossible = new Bitmask();
-		for (let i = 0; i < numPatterns; i++) bitmask.setBit(i);
+		for (let i = 0; i < numPatterns; i++) allPatternsPossible.setBit(i);
 
 		const waveMatrix = [];
 		for (let y = 0; y < outputHeight; y++) {
@@ -234,7 +257,7 @@ waveMatrixToImage():
 				const contradictionCreated = cell2_NewPossiblePatterns_Bitmask.allBitsUnset();
 				if (contradictionCreated) return true;
 				
-				const cell2Changed = Bitmask.EQUALS(cell2_PossiblePatterns_Bitmask, cell2_NewPossiblePatterns_Bitmask)
+				const cell2Changed = !(Bitmask.EQUALS(cell2_PossiblePatterns_Bitmask, cell2_NewPossiblePatterns_Bitmask));
 				if (cell2Changed) {
 					waveMatrix[y2][x2] = cell2_NewPossiblePatterns_Bitmask;
 					queue.enqueue([y2, x2]);
@@ -260,7 +283,13 @@ waveMatrixToImage():
 
 		for (let y = 0; y < waveMatrix.length; y++) {
 			for (let x = 0; x < waveMatrix[0].length; x++) {
+
+				const start = performance.now();
 				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
+				const duration = performance.now() - start;
+				this.getShannonEntropy_TotalDuration += duration;
+				this.getShannonEntropy_NumCalls++;
+
 				if (entropy < leastEntropy && entropy > 0) {
 					leastEntropy = entropy;
 					leastEntropyCellPositions = [[y, x]];
