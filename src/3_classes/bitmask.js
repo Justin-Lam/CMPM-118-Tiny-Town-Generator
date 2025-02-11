@@ -8,40 +8,22 @@
  * 	or a possible patterns Bitmask for a cell (which patterns a cell can be).
 */
 class Bitmask {
-	value = 0n;	// BigInt
+	/** Since a single int can only store up to 32 bits (or patterns), use an array of ints to represent a giant int with infinite size. */
+	array;
+
+	/** @param {number} numBits is equal to numPatterns */
+	constructor(numBits) {
+		const numInts = Math.ceil(numBits/32);
+		this.array = new Uint32Array(numInts);
+	}
 
 	/**
-	 * Sets the bit at index i to 1.
+	 * Ex: 4 (decimal) -> 1000 (binary).
 	 * @param {number} i 
+	 * @returns {number} 
 	 */
-	setBit(i) {
-		/*
-			Convert i to a BigInt
-			Then convert it from an index to a bitmask
-			Then combine it wtih this Bitmask
-		*/
-		this.value |= (1n << BigInt(i));
-	}
-
-	/** Sets all bits to 0. */
-	clear() {
-		this.value = 0n;
-	}
-
-	/**
-	 * Returns whether all bits are 0 or not.
-	 * @returns {boolean}
-	 */
-	allBitsUnset() {
-		return this.value === 0n;
-	}
-
-	/**
-	 * Sets any unset bits in this Bitmask that are set in the other Bitmask.
-	 * @param {Bitmask} other 
-	 */
-	combineWith(other) {
-		this.value |= other.value;
+	static indexToBitmask(i) {
+		return 1 << i;
 	}
 
 	/**
@@ -51,7 +33,8 @@ class Bitmask {
 	 * @returns {boolean}
 	 */
 	static EQUALS(b1, b2) {
-		return b1.value === b2.value;
+		for (let i = 0; i < b1.array.length; i++) if (b1.array[i] !== b2.array[i]) return false;
+		return true;
 	}
 
 	/**
@@ -61,9 +44,53 @@ class Bitmask {
 	 * @returns {Bitmask}
 	 */
 	static AND(b1, b2) {
-		const result = new Bitmask();
-		result.value = b1.value & b2.value;
+		const numBits = b1.array.length * 32;
+		const result = new Bitmask(numBits);
+		for (let i = 0; i < b1.array.length; i++) result.array[i] = b1.array[i] & b2.array[i];
 		return result;
+	}
+
+	/**
+	 * Creates and returns a new Bitmask with the same value as the source.
+	 * @param {Bitmask} source 
+	 * @returns {Bitmask}
+	 */
+	static createCopy(source) {
+		const numBits = source.array.length * 32;
+		const copy = new Bitmask(numBits)
+		copy.array = source.array.slice();
+		return copy;
+	}
+
+	/**
+	 * Sets the bit at index i to 1.
+	 * @param {number} i 
+	 */
+	setBit(i) {
+		const arrayIndex = Math.floor(i/32);
+		this.array[arrayIndex] |= Bitmask.indexToBitmask(i);
+	}
+
+	/** Sets all bits to 0. */
+	clear() {
+		this.array.fill(0);
+	}
+
+	/**
+	 * Returns whether all bits are 0 or not.
+	 * @returns {boolean}
+	 */
+	allBitsUnset() {
+		for (const int of this.array) if (int !== 0) return false;
+		return true;
+	}
+
+	/**
+	 * Sets any unset bits in this Bitmask that are set in the other Bitmask.
+	 * @param {Bitmask} other 
+	 */
+	combineWith(other) {
+		for (let i = 0; i < this.array.length; i++) this.array[i] |= other.array[i];
 	}
 
 	/**
@@ -71,18 +98,20 @@ class Bitmask {
 	 * @returns {number[]}
 	 */
 	toArray() {
+		// Extract all set bits from the Bitmask and push their indices into result
 		const result = [];
-		let bitmask = this.value;	// make a copy so we don't alter the actual value
-
-		// Extract all set bits from the bitmask and push their indices into result
-		while (bitmask !== 0n) {
-			const lowestSetBit = bitmask & -bitmask;			// ex: 01100 (binary) -> 00100 (binary)
-			const index = log2_BigInt.get(lowestSetBit);		// ex: 00100 (binary) -> 2 (decimal)
-			//const index = BigInt.prototype.toString.call(lowestSetBit, 2).length - 1;	// ex: 4.toString(2) = "100", "100".length - 1 = 2;
-			result.push(index);
-			bitmask ^= lowestSetBit;	// clear the bit
+		for (let i = 0; i < this.array.length; i++) {
+			let subBitmask = this.array[i];	// make a copy so we don't alter the actual value
+			while (subBitmask !== 0) {
+				const lowestSetBit_Signed = subBitmask & -subBitmask;		// ex: 01100 (binary) -> 00100 (binary)
+				const lowestSetBit_Unsigned = lowestSetBit_Signed >>> 0;	// necessary if index_Local === 31 (without this you'd get a negative index)
+				const base = i*32;
+				const index_Local = Math.log2(lowestSetBit_Unsigned)		// ex: 00100 (binary) -> 2 (decimal)
+				const index_Final = base + index_Local;
+				result.push(index_Final);
+				subBitmask ^= lowestSetBit_Unsigned;	// clear the bit
+			}
 		}
-		
 		return result;
 	}
 }

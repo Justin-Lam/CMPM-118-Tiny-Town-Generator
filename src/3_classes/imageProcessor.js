@@ -101,10 +101,10 @@ class ImageProcessor {
 
 		// Initialize this.adjacencies by populating it with initialized adjacent patterns Bitmasks (all bits set to 0)
 		for (const pattern of this.patterns) this.adjacencies.push([
-			new Bitmask(),	// up
-			new Bitmask(),	// down
-			new Bitmask(),	// left
-			new Bitmask()	// right
+			new Bitmask(this.patterns.length),	// up
+			new Bitmask(this.patterns.length),	// down
+			new Bitmask(this.patterns.length),	// left
+			new Bitmask(this.patterns.length)	// right
 		]);
 
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input direction index k to get opposite direction index o

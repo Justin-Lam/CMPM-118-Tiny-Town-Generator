@@ -110,6 +110,19 @@ class ConstraintSolver {
 		}
 
 		this.getLeastEntropyUnsolvedCellPosition_TotalDuration -= this.getShannonEntropy_TotalDuration;
+		const completeTotalDuration = (
+			this.createWaveMatrix_TotalDuration
+			+
+			this.observe_TotalDuration
+			+
+			this.propagate_TotalDuration
+			+
+			this.getLeastEntropyUnsolvedCellPosition_TotalDuration
+			+
+			this.getShannonEntropy_TotalDuration
+			+
+			this.waveMatrixToImage_TotalDuration
+		);
 		console.log(`
 createWaveMatrix():
 	total duration: ${this.createWaveMatrix_TotalDuration} ms
@@ -145,6 +158,8 @@ toArray():
 	total duration: ${this.toArray_TotalDuration} ms
 	num calls: ${this.toArray_NumCalls}
 	average duration: ${(this.toArray_TotalDuration / this.toArray_NumCalls).toFixed(3)} ms
+
+complete total duration: ${completeTotalDuration} ms
 		`);
 
 		if (numAttempts > maxAttempts) {
@@ -166,16 +181,14 @@ toArray():
 	 * @returns {Bitmask[][]} 2D matrix of cells, which are actually just their possible pattern Bitmasks
 	 */
 	createWaveMatrix(numPatterns, outputWidth, outputHeight) {
-		const allPatternsPossible = new Bitmask();
+		const allPatternsPossible = new Bitmask(numPatterns);
 		for (let i = 0; i < numPatterns; i++) allPatternsPossible.setBit(i);
 
 		const waveMatrix = [];
 		for (let y = 0; y < outputHeight; y++) {
 			waveMatrix[y] = [];
 			for (let x = 0; x < outputWidth; x++) {
-				const bitmask = new Bitmask();
-				bitmask.value = allPatternsPossible.value;
-				waveMatrix[y][x] = bitmask;
+				waveMatrix[y][x] = Bitmask.createCopy(allPatternsPossible);
 			}
 		}
 		return waveMatrix;
@@ -265,7 +278,7 @@ toArray():
 
 				const cell2_PossiblePatterns_Bitmask = waveMatrix[y2][x2];
 
-				const cell1_PossibleAdjacentPatterns_Bitmask = new Bitmask();
+				const cell1_PossibleAdjacentPatterns_Bitmask = new Bitmask(adjacencies.length);
 				for (const i of cell1_PossiblePatterns_Array) {
 					const i_AdjacentPatterns_Bitmask = adjacencies[i][k];
 					cell1_PossibleAdjacentPatterns_Bitmask.combineWith(i_AdjacentPatterns_Bitmask);
