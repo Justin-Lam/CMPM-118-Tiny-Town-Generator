@@ -1,5 +1,6 @@
-/**	Processes images to get their patterns and those patterns' weights and adjacencies.
- * 	Doesn't process images as periodic, and doesn't rotate or reflect patterns. 
+/**
+ * Processes images to get their patterns and those patterns' weights and adjacencies.
+ * Doesn't process images as periodic, and doesn't reflect or rotate patterns. 
 */
 class ImageProcessor {
 	/** 
@@ -17,9 +18,9 @@ class ImageProcessor {
 	/**
 	 * A is to the {direction} of B. For example, if pattern 0 can be placed above patterns 1 and 3:
 	 * ```
-	 * adjacencies = [ pattern0Adjacencies, pattern2Adjacencies, ... ]
-	 * pattern0Adjacencies = [ [upAdjacencies], [downAdjacencies], [leftAdjacencies], [rightAdjacencies] ]
-	 * upAdjacencies = [ 1, 3, ... ]
+	 * adjacencies = [ pattern0Adjacencies, pattern1Adjacencies, ... ]
+	 * pattern0Adjacencies = [ [upBitmask], [downBitmask], [leftBitmask], [rightBitmask] ]
+	 * upBitmask = 001010101101
 	 * ```
 	 * @type {Bitmask[][]} an array (i = pattern index) of arrays (i = direction index) of adjacent patterns Bitmasks which store a pattern's adjacent patterns in a direction
 	*/
@@ -28,7 +29,7 @@ class ImageProcessor {
 	/**
 	 * Populates this.patterns, this.adjacencies, and this.weights.
 	 * @param {number[][]} images an array of 2D tile ID matrices each representing a layer of a tilemap
-	 * @param {number} N the desired width of the resulting square patterns
+	 * @param {number} N the width of the resulting square patterns
 	 */
 	process(images, N) {
 		this.resetVariables();
@@ -44,28 +45,30 @@ class ImageProcessor {
 
 	/**
 	 * @param {number[][]} images an array of 2D tile ID matrices each representing a layer of a tilemap
-	 * @param {number} N the desired width of the resulting square patterns
+	 * @param {number} N the width of the resulting square patterns
 	 */
 	getPatternsAndWeights(images, N) {
 		/*
-			Have to get patterns and weights together because we want this.patterns to only have unique ones
-			When we find duplicates, we need to throw them out and increment the original pattern's weight
-			Using a map will let us filter out duplicates and know which index in this.weights to increment
+			Because this.patterns must only contain unique ones, we have to get patterns and weights together
+			When we find duplicate patterns, throw them out and increment the original pattern's weight
+			Use a map to filter out duplicates and know the index of the element in this.weights to increment
 		*/
 		const uniquePatterns = new Map();	// <pattern, index>
+		
 		for (const image of images) {
 			for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
 				for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
-					const pattern = this.getPattern(image, N, y, x);
-					const patternStr = pattern.toString();		// need to convert to string because maps compare arrays using their pointers
-					if (uniquePatterns.has(patternStr)) {
-						const patternIndex = uniquePatterns.get(patternStr);
-						this.weights[patternIndex]++;
+
+					const p = this.getPattern(image, N, y, x);
+					const p_str = p.toString();	// need to convert to string because maps compare arrays using their pointers
+					if (uniquePatterns.has(p_str)) {
+						const i = uniquePatterns.get(p_str);
+						this.weights[i]++;
 					}
 					else {
-						this.patterns.push(pattern);
+						this.patterns.push(p);
 						this.weights.push(1);
-						uniquePatterns.set(patternStr, this.patterns.length-1);
+						uniquePatterns.set(p_str, this.patterns.length-1);
 					}
 				}
 			}
@@ -75,9 +78,9 @@ class ImageProcessor {
 
 	/**
 	 * @param {number[][]} image a 2D matrix of tile IDs representing a layer of a tilemap
-	 * @param {number} N the desired width of the resulting square patterns
-	 * @param {number} y the y position in the image of the top left tile of the pattern
-	 * @param {number} x the x position in the image of the top left tile of the pattern
+	 * @param {number} N the width of the resulting square patterns
+	 * @param {number} y the y position of the top left tile of the pattern in the image
+	 * @param {number} x the x position of the top left tile of the pattern in the image
 	 * @returns {number[][]}
 	 */
 	getPattern(image, N, y, x) {
@@ -98,14 +101,14 @@ class ImageProcessor {
 			We don't need to check combos that we've already done
 			Hence why j starts at i+1
 		*/
-
-		// Initialize this.adjacencies by populating it with initialized adjacent patterns Bitmasks (all bits set to 0)
-		for (const pattern of this.patterns) this.adjacencies.push([
-			new Bitmask(this.patterns.length),	// up
-			new Bitmask(this.patterns.length),	// down
-			new Bitmask(this.patterns.length),	// left
-			new Bitmask(this.patterns.length)	// right
-		]);
+		for (let i = 0; i < this.patterns.length; i++) {
+			this.adjacencies.push([
+				new Bitmask(this.patterns.length),	// up
+				new Bitmask(this.patterns.length),	// down
+				new Bitmask(this.patterns.length),	// left
+				new Bitmask(this.patterns.length)	// right
+			]);
+		}		
 
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input direction index k to get opposite direction index o
 

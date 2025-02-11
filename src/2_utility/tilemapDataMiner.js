@@ -1,8 +1,7 @@
 /*
-	Used to extract the tileID matrices from a tilemap's layers
+	Used to extract the tileID matrices from a tilemap's layers.
 */
-class TilemapDataMiner extends Phaser.Scene
-{
+class TilemapDataMiner extends Phaser.Scene {
 	tilemapLayers = [];
 	currentTilemapIndex = 0;
 

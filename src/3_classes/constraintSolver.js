@@ -286,7 +286,7 @@ complete total duration: ${completeTotalDuration} ms
 
 				const cell2_NewPossiblePatterns_Bitmask = Bitmask.AND(cell2_PossiblePatterns_Bitmask, cell1_PossibleAdjacentPatterns_Bitmask);
 
-				const contradictionCreated = cell2_NewPossiblePatterns_Bitmask.allBitsUnset();
+				const contradictionCreated = cell2_NewPossiblePatterns_Bitmask.isEmpty();
 				if (contradictionCreated) return true;
 				
 				const cell2Changed = !(Bitmask.EQUALS(cell2_PossiblePatterns_Bitmask, cell2_NewPossiblePatterns_Bitmask));

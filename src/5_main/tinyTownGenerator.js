@@ -3,8 +3,8 @@ class TinyTownGenerator extends Phaser.Scene {
 	cs = new ConstraintSolver();
 	mapIndex = 1;
 	N = 2;
-	outputWidth = 40;
-	outputHeight = 25;
+	outputWidth = 24;
+	outputHeight = 15;
 	maxAttempts = 10;
 	numRuns = 10;	// for this.getAverageRuntime()
 
