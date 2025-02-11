@@ -9,7 +9,9 @@ export class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
-	numRuns = 3;	// for this.getAverageRuntime() and this.getBatch()
+	numRuns = 30;	// for this.getAverageRuntime() and this.getBatch()
+
+	tileSize = 16;
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -155,14 +157,50 @@ export class TinyTownGenerator extends Phaser.Scene {
 	async getBatch(numRuns){
 		console.log("Generating batch...");
 
-		let exports = [];
+		// temporarily shrinking canvas to output size
+		let startWidth = window.game.canvas.width;
+		let startHeight = window.game.canvas.width;
+		window.game.canvas.width = this.outputWidth * this.tileSize;
+		window.game.canvas.height = this.outputHeight * this.tileSize;
+		console.log(window.game.canvas.width, window.game.canvas.height);
+		
+		// generate maps and send b64/png data to server to be saved
+		let images = [];
 		for(let i = 1; i <= numRuns; i++){
 			this.generateMap();
+			
+			await this.forceRenderUpdate(); 
 
-			let img = await fetch(window.game.canvas.toDataURL());
-			exports.push(img.url);
+			let img = window.game.canvas.toDataURL("image/png"); 
+			images.push(img);
 		}
-		console.log(exports)
+		//console.log(exports)
 		console.log("Batch ready for export!")
+
+		// Send images to the server
+		fetch('http://localhost:3000/upload', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({images: images})
+		})
+		.then(response => response.json())
+		.then(data => console.log('Server Response:', data))
+		.catch(error => console.error('Error:', error));
+
+		// restore canvas to orginal size
+		window.game.canvas.width = startWidth;
+		window.game.canvas.height = startHeight;
 	}
+
+	// Ensure Phaser fully updates the canvas			
+	forceRenderUpdate() {
+		return new Promise(resolve => {
+			this.time.delayedCall(100, () => {
+				this.game.renderer.snapshot(() => { // force Phaser to take a full render snapshot
+					resolve();
+				});
+			});
+		});
+	}
+	
 }
