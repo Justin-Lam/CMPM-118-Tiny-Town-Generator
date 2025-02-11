@@ -1,7 +1,8 @@
 /*
 	Used to extract the tileID matrices from a tilemap's layers
 */
-class TilemapDataMiner extends Phaser.Scene
+import Phaser from "../../lib/phaser.module.js"
+export class TilemapDataMiner extends Phaser.Scene
 {
 	tilemapLayers = [];
 	currentTilemapIndex = 0;

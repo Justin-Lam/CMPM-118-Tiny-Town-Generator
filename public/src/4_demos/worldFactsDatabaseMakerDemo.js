@@ -1,4 +1,5 @@
-class WorldFactsDatabaseMakerDemo extends Phaser.Scene {
+import Phaser from "../../lib/phaser.module.js"
+export class WorldFactsDatabaseMakerDemo extends Phaser.Scene {
 	TILE_SIZE = 16;		// in pixels
 	MAP_WIDTH = 40;		// in tiles
 	MAP_HEIGHT = 25;	// in tiles

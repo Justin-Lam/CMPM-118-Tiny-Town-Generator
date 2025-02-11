@@ -1,0 +1,21 @@
+{
+  "name": "tiny-town-generator",
+  "version": "0.0.0",
+  "main": "Server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./public/Server.js",
+    "watch": "nodemon --ext * 'js,html' ./public/Server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "phaser": "^3.87.0"
+  },
+  "devDependencies": {
+    "connect-livereload": "^0.6.1",
+    "livereload": "^0.9.3",
+    "nodemon": "^3.1.9"
+  }
+}

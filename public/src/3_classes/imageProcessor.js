@@ -1,5 +1,5 @@
 /** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
-class ImageProcessor {
+export default class ImageProcessor {
 	/** 
 	 * Example: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
 	 * @type {number[][][]}

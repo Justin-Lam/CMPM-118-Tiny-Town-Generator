@@ -1,4 +1,8 @@
-class TinyTownGenerator extends Phaser.Scene {
+import Phaser from "../../lib/phaser.module.js"
+import ImageProcessor from "../3_classes/imageProcessor.js"
+import ConstraintSolver from "../3_classes/constraintSolver.js"
+
+export class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
 	cs = new ConstraintSolver();
 	mapIndex = 1;

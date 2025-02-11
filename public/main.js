@@ -1,3 +1,6 @@
+import Phaser from "./lib/phaser.module.js";
+import { TinyTownGenerator } from "./src/5_main/tinyTownGenerator.js";
+
 // debug with extreme prejudice
 "use strict"
 
