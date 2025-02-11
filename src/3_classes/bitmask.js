@@ -76,8 +76,9 @@ class Bitmask {
 
 		// Extract all set bits from the bitmask and push their indices into result
 		while (bitmask !== 0n) {
-			const lowestSetBit = bitmask & -bitmask;			// ex: 01100 (binary) -> 00100 (binary) = 4 (decimal)
-			const index = lowestSetBit.toString(2).length - 1;	// ex: 4.toString(2) = "100", "100".length - 1 = 2;
+			const lowestSetBit = bitmask & -bitmask;			// ex: 01100 (binary) -> 00100 (binary)
+			const index = log2_BigInt.get(lowestSetBit);		// ex: 00100 (binary) -> 2 (decimal)
+			//const index = BigInt.prototype.toString.call(lowestSetBit, 2).length - 1;	// ex: 4.toString(2) = "100", "100".length - 1 = 2;
 			result.push(index);
 			bitmask ^= lowestSetBit;	// clear the bit
 		}

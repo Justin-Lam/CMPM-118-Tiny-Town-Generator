@@ -19,6 +19,8 @@ class ConstraintSolver {
 	propagate_NumCalls;
 	waveMatrixToImage_TotalDuration;
 	waveMatrixToImage_NumCalls;
+	toArray_TotalDuration;
+	toArray_NumCalls;
 
 	/**
 	 * Attempts to populate this.output.
@@ -44,6 +46,8 @@ class ConstraintSolver {
 		this.propagate_NumCalls = 0;
 		this.waveMatrixToImage_TotalDuration = 0;
 		this.waveMatrixToImage_NumCalls = 0;
+		this.toArray_TotalDuration = 0;
+		this.toArray_NumCalls = 0;
 
 		console.log("starting");
 
@@ -136,6 +140,11 @@ waveMatrixToImage():
 	total duration: ${this.waveMatrixToImage_TotalDuration} ms
 	num calls: ${this.waveMatrixToImage_NumCalls}
 	average duration: ${(this.waveMatrixToImage_TotalDuration / this.waveMatrixToImage_NumCalls).toFixed(3)} ms
+
+toArray():
+	total duration: ${this.toArray_TotalDuration} ms
+	num calls: ${this.toArray_NumCalls}
+	average duration: ${(this.toArray_TotalDuration / this.toArray_NumCalls).toFixed(3)} ms
 		`);
 
 		if (numAttempts > maxAttempts) {
@@ -182,7 +191,12 @@ waveMatrixToImage():
 	observe(waveMatrix, y, x, weights) {
 		// used https://dev.to/jacktt/understanding-the-weighted-random-algorithm-581p
 
+		const start = performance.now();
 		const possiblePatterns = waveMatrix[y][x].toArray();
+		const duration = performance.now() - start;
+		this.toArray_TotalDuration += duration;
+		this.toArray_NumCalls++;
+
 		const possiblePatternWeights = [];	// is parallel with possiblePatterns
 		let totalWeight = 0;
 		for (const i of possiblePatterns) {
@@ -220,8 +234,13 @@ waveMatrixToImage():
 
 		while (queue.length > 0) {
 			const [y1, x1] = queue.dequeue();
+
+			const start = performance.now();
 			const cell1_PossiblePatterns_Array = waveMatrix[y1][x1].toArray();
-			
+			const duration = performance.now() - start;
+			this.toArray_TotalDuration += duration;
+			this.toArray_NumCalls++;
+
 			for (let k = 0; k < DIRECTIONS.length; k++) {	// using k because k is associated with iterating over DIRECTIONS in the ImageProcessor class
 				/*
 					Given two adjacent cells: cell1 at (y1, x1) and cell2 at (y2, x2)
@@ -316,8 +335,12 @@ waveMatrixToImage():
 	 * @returns {number}
 	 */
 	getShannonEntropy(possiblePatterns_Bitmask, weights) {
+		const start = performance.now();
 		const possiblePatterns_Array = possiblePatterns_Bitmask.toArray();
-		
+		const duration = performance.now() - start;
+		this.toArray_TotalDuration += duration;
+		this.toArray_NumCalls++;
+
 		if (possiblePatterns_Array.length === 0) throw new Error("Contradiction found.");
 		if (possiblePatterns_Array.length === 1) return 0;	// what the calculated result would have been
 
@@ -342,7 +365,13 @@ waveMatrixToImage():
 		for (let y = 0; y < waveMatrix.length; y++) {
 			image[y] = [];
 			for (let x = 0; x < waveMatrix[0].length; x++) {
+
+				const start = performance.now();
 				const possiblePatterns_Array = waveMatrix[y][x].toArray();
+				const duration = performance.now() - start;
+				this.toArray_TotalDuration += duration;
+				this.toArray_NumCalls++;
+
 				const i = possiblePatterns_Array[0];	// should be guaranteed to only have 1 possible pattern
 				const tileID = patterns[i][0][0];
 				image[y][x] = tileID;
