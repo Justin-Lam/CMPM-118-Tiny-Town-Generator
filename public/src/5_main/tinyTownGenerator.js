@@ -1,6 +1,7 @@
 import Phaser from "../../lib/phaser.module.js"
 import ImageProcessor from "../3_classes/imageProcessor.js"
 import ConstraintSolver from "../3_classes/constraintSolver.js"
+import { autoExport } from "../2_utility/autoexporter.js";
 
 export class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
@@ -9,7 +10,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
-	numRuns = 30;	// for this.getAverageRuntime() and this.getBatch()
+	numRuns = 30;	// for this.getAverageRuntime() and autoExport()
 
 	tileSize = 16;
 
@@ -51,11 +52,11 @@ export class TinyTownGenerator extends Phaser.Scene {
 		this.runWFC_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 		this.clear_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
 		this.timedRuns_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
-		this.getBatch_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+		this.autoExport_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
 		this.runWFC_Key.on("down", () => this.generateMap());
 		this.timedRuns_Key.on("down", () => this.getAverageRuntime(this.numRuns));
-		this.getBatch_Key.on("down", () => this.getBatch(this.numRuns));
+		this.autoExport_Key.on("down", () => autoExport(this.numRuns, this)); 
 		this.clear_Key.on("down", () => {
 			for (const layer of this.multiLayerMapLayers) {
 				layer.setVisible(true);
@@ -73,8 +74,8 @@ export class TinyTownGenerator extends Phaser.Scene {
 		<h2>Controls (open console recommended)</h2>
 		Run WFC: R <br>
 		Clear Output: C <br>
-		Get average runtime over ${this.numRuns} runs: T
-		Import a batch of ${this.numRuns} runs: B
+		Get average runtime over ${this.numRuns} runs: T <br>
+		Export ${this.numRuns} runs as .png files: E
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}
@@ -153,54 +154,4 @@ export class TinyTownGenerator extends Phaser.Scene {
 		}
 		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
 	}
-
-	async getBatch(numRuns){
-		console.log("Generating batch...");
-
-		// temporarily shrinking canvas to output size
-		let startWidth = window.game.canvas.width;
-		let startHeight = window.game.canvas.width;
-		window.game.canvas.width = this.outputWidth * this.tileSize;
-		window.game.canvas.height = this.outputHeight * this.tileSize;
-		console.log(window.game.canvas.width, window.game.canvas.height);
-		
-		// generate maps and send b64/png data to server to be saved
-		let images = [];
-		for(let i = 1; i <= numRuns; i++){
-			this.generateMap();
-			
-			await this.forceRenderUpdate(); 
-
-			let img = window.game.canvas.toDataURL("image/png"); 
-			images.push(img);
-		}
-		//console.log(exports)
-		console.log("Batch ready for export!")
-
-		// Send images to the server
-		fetch('http://localhost:3000/upload', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({images: images})
-		})
-		.then(response => response.json())
-		.then(data => console.log('Server Response:', data))
-		.catch(error => console.error('Error:', error));
-
-		// restore canvas to orginal size
-		window.game.canvas.width = startWidth;
-		window.game.canvas.height = startHeight;
-	}
-
-	// Ensure Phaser fully updates the canvas			
-	forceRenderUpdate() {
-		return new Promise(resolve => {
-			this.time.delayedCall(100, () => {
-				this.game.renderer.snapshot(() => { // force Phaser to take a full render snapshot
-					resolve();
-				});
-			});
-		});
-	}
-	
 }
