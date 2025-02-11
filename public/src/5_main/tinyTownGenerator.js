@@ -9,7 +9,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
-	numRuns = 10;	// for this.getAverageRuntime()
+	numRuns = 3;	// for this.getAverageRuntime() and this.getBatch()
 
 	constructor() {
 		super("tinyTownGeneratorScene");
@@ -49,9 +49,11 @@ export class TinyTownGenerator extends Phaser.Scene {
 		this.runWFC_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 		this.clear_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
 		this.timedRuns_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
+		this.getBatch_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
 		this.runWFC_Key.on("down", () => this.generateMap());
 		this.timedRuns_Key.on("down", () => this.getAverageRuntime(this.numRuns));
+		this.getBatch_Key.on("down", () => this.getBatch(this.numRuns));
 		this.clear_Key.on("down", () => {
 			for (const layer of this.multiLayerMapLayers) {
 				layer.setVisible(true);
@@ -64,11 +66,13 @@ export class TinyTownGenerator extends Phaser.Scene {
 			}
 		});
 
+
 		const controls = `
 		<h2>Controls (open console recommended)</h2>
 		Run WFC: R <br>
 		Clear Output: C <br>
 		Get average runtime over ${this.numRuns} runs: T
+		Import a batch of ${this.numRuns} runs: B
 		`;
 		document.getElementById("description").innerHTML = controls;
 	}
@@ -129,7 +133,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 		for (const layer of this.multiLayerMapLayers) {
 			layer.setVisible(false);
 		}
-	}
+	}	
 
 	getAverageRuntime(numRuns){
 		let timeStart = performance.now();
@@ -146,5 +150,19 @@ export class TinyTownGenerator extends Phaser.Scene {
 			timeStart = performance.now();
 		}
 		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
+	}
+
+	async getBatch(numRuns){
+		console.log("Generating batch...");
+
+		let exports = [];
+		for(let i = 1; i <= numRuns; i++){
+			this.generateMap();
+
+			let img = await fetch(window.game.canvas.toDataURL());
+			exports.push(img.url);
+		}
+		console.log(exports)
+		console.log("Batch ready for export!")
 	}
 }
