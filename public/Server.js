@@ -45,9 +45,10 @@ app.listen(PORT, () => {
 
 // downloading
 const fs = require('fs');
+const exportFolder = "exports";
 
 app.use(express.json({ limit: '50mb' })); // Allows large Base64 images
-app.post('/upload', (req, res) => {
+app.post(`/${exportFolder}`, (req, res) => {
   const images = req.body.images; // Array of base64 images
   //console.log("TYPE:", typeof(images));
   //console.log("TYPE:", Array.isArray(images));
@@ -60,7 +61,7 @@ app.post('/upload', (req, res) => {
       const base64Data = base64String.replace(/^data:image\/png;base64,/, "");
 
       // Save as a PNG file
-      const filePath = path.join(__dirname, '/upload', `map_${index}.png`);
+      const filePath = path.join(__dirname, `/${exportFolder}`, `map_${index}.png`);
       fs.writeFileSync(filePath, base64Data, 'base64');
   });
 

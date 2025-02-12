@@ -23,7 +23,7 @@ export async function autoExport(numRuns, scene){
     console.log(`Batch of ${images.length} PNGs ready for export!`)
 
     // Send images to the server
-    fetch('http://localhost:3000/upload', {
+    fetch('http://localhost:3000/exports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({images: images})

@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./public/Server.js",
-    "watch": "nodemon --ext * 'js,html' ./public/Server.js --ignore ./public/upload"
+    "watch": "nodemon --ext * 'js,html' ./public/Server.js --ignore ./public/exports"
   },
   "author": "",
   "license": "ISC",
