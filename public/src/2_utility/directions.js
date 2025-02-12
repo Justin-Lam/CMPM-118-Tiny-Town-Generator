@@ -1,6 +1,6 @@
-// [y, x], where positive y points down and positive x points right
-const UP = [-1, 0];
-const DOWN = [1, 0];
-const LEFT = [0, -1];
-const RIGHT = [0, 1];
-const DIRECTIONS = [UP, DOWN, LEFT, RIGHT];
+/**
+ * [up, down, left, right],
+ * where each direction is in the order [y, x],
+ * and where positive y points down and positive x points right.
+ */
+const DIRECTIONS = [ [-1, 0], [1, 0], [0, -1], [0, 1] ];

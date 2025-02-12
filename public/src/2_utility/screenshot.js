@@ -1,5 +1,5 @@
 /*
-	S to screenshot
+	Press 'S' to screenshot
 	Only supported by Chrome and Edge
 */
 async function takeScreenshot() {
