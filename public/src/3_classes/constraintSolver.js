@@ -1,3 +1,4 @@
+import Bitmask from "./bitmask.js";
 export default class ConstraintSolver {
 	/**
 	 * The output image as a 2D matrix of tile IDs.

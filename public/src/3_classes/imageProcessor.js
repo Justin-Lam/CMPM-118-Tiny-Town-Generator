@@ -1,13 +1,6 @@
-<<<<<<< HEAD:public/src/3_classes/imageProcessor.js
+import Bitmask from "./bitmask.js";
 /** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
 export default class ImageProcessor {
-=======
-/**
- * Processes images to get their patterns and those patterns' weights and adjacencies.
- * Doesn't process images as periodic, and doesn't reflect or rotate patterns. 
-*/
-class ImageProcessor {
->>>>>>> main:src/3_classes/imageProcessor.js
 	/** 
 	 * Ex: [ pattern0, pattern1, ... ], where patterns are 2D NxN matrices.
 	 * @type {number[][][]}
