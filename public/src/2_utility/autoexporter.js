@@ -4,7 +4,7 @@ export async function autoExport(numRuns, scene){
 
 	// Temporarily shrink canvas to output size
 	const startWidth = window.game.canvas.width;
-	const startHeight = window.game.canvas.width;
+	const startHeight = window.game.canvas.height;
 	window.game.canvas.width = scene.outputWidth * scene.tileSize;
 	window.game.canvas.height = scene.outputHeight * scene.tileSize;
 	console.log(window.game.canvas.width, window.game.canvas.height);
