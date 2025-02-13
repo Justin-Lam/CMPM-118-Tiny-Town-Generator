@@ -1,7 +1,7 @@
 import Phaser from "../../lib/phaser.module.js"
 import ImageProcessor from "../3_classes/imageProcessor.js"
 import ConstraintSolver from "../3_classes/constraintSolver.js"
-import { autoExport } from "../2_utility/autoexporter.js";
+import { autoExport } from "../2_utility/autoExporter.js";
 
 export class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
