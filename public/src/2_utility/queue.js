@@ -1,47 +1,42 @@
-/*
-	Note on why queue is implemented via function instead of class:
-	Queue via array (using shift), function, and class are all basically the same speed when length is less than 10,000
-	However, queue via function seems to be ever so slightly faster than the others, hence we're going to use it
-*/
-const Node = function(data) {
-	this.data = data;
-	this.next = null;
-};
-
-const Queue = function() {
-	this.head = null;
-	this.tail = null;
-	this.length = 0;
-};
-
-Queue.prototype.enqueue = function(data) {
-	const node = new Node(data);
-
-	if (this.length === 0) {
-		this.head = node;
-		this.tail = node;
+/** A node of a linked list. */
+class Node {
+	constructor(data) {
+		this.data = data;
+		this.next = null;
 	}
-	else {
-		this.tail.next = node;
-		this.tail = node;
-	}
-	
-	this.length++;
-};
+}
 
-/** @returns {any | null} the element at the head of the queue or null if the queue is empty */
-Queue.prototype.dequeue = function() {
-	if (this.length === 0) {
-		return null;
+/** Utilizes a linked list for O(1) enqueueing/dequeueing. */
+class Queue {
+	front = null;
+	back = null;
+	length = 0;
+
+	enqueue(data) {
+		const node = new Node(data);
+
+		if (this.length === 0) {
+			this.front = node;
+			this.back = node;
+		}
+		else {
+			this.back.next = node;
+			this.back = node;
+		}
+		
+		this.length++;
 	}
 
-	const data = this.head.data;
-	this.head = this.head.next;
-	this.length--;
+	/** @returns {any | null} the element at the front of the queue or null if it's is empty */
+	dequeue() {
+		if (this.length === 0) return null;
 
-	if (!this.head) {
-		this.tail = null;
+		const data = this.front.data;
+		this.front = this.front.next;
+		this.length--;
+
+		if (!this.front) this.back = null;	// update back to match front
+
+		return data;
 	}
-
-	return data;
-};
+}

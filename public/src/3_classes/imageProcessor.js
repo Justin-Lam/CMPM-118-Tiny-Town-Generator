@@ -1,4 +1,5 @@
-import Bitmask from "./bitmask.js";
+import Bitmask from "../2_utility/bitmask.js";
+
 /** Processes images to get their patterns. Doesn't process images as periodic, and doesn't rotate or reflect patterns. */
 export default class ImageProcessor {
 	/** 
@@ -159,9 +160,7 @@ export default class ImageProcessor {
 			for (let x = startX; x < endX; x++) {
 				const tile1 = p1[y][x];
 				const tile2 = p2[y+dy][x+dx];	// apply offsets
-				if (tile1 !== tile2) {
-					return false;
-				}
+				if (tile1 !== tile2) return false;
 			}
 		}
 		return true;

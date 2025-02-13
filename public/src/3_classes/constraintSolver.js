@@ -1,4 +1,5 @@
-import Bitmask from "./bitmask.js";
+import Bitmask from "../2_utility/bitmask.js";
+
 export default class ConstraintSolver {
 	/**
 	 * The output image as a 2D matrix of tile IDs.
@@ -379,7 +380,6 @@ complete total duration: ${completeTotalDuration} ms
 		for (let y = 0; y < waveMatrix.length; y++) {
 			image[y] = [];
 			for (let x = 0; x < waveMatrix[0].length; x++) {
-
 				const start = performance.now();
 				const possiblePatterns_Array = waveMatrix[y][x].toArray();
 				const duration = performance.now() - start;

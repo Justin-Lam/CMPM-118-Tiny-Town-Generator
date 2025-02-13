@@ -2,8 +2,7 @@
 	Used to extract the tileID matrices from a tilemap's layers.
 */
 import Phaser from "../../lib/phaser.module.js"
-export class TilemapDataMiner extends Phaser.Scene
-{
+export class TilemapDataMiner extends Phaser.Scene {
 	tilemapLayers = [];
 	currentTilemapIndex = 0;
 
