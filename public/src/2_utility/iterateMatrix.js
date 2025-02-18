@@ -24,21 +24,19 @@
  */
 function* iterateMatrix(matrix) {
 	for (let y = 0; y < matrix.length; y++) {
-		for (let x = 0; x < matrix[y].length; x++) {
-			yield matrix[y][x];
-		}
-	}
+	for (let x = 0; x < matrix[y].length; x++) {
+		yield matrix[y][x];
+	}}
 }
 
 /**
- * Iterates over a 2D matrix row by row, column by column, yielding the matrix's elements and their YX indices.
+ * Iterates over a 2D matrix row by row, column by column, yielding the matrix's elements and their yx indices.
  * @param {any[][]} matrix
  * @yields {[element, y, x]} an array containing an element, its y, and its x
  */
 function* iterateMatrixYX(matrix) {
 	for (let y = 0; y < matrix.length; y++) {
-		for (let x = 0; x < matrix[y].length; x++) {
-			yield [matrix[y][x], y, x];
-		}
-	}
+	for (let x = 0; x < matrix[y].length; x++) {
+		yield [matrix[y][x], y, x];
+	}}
 }

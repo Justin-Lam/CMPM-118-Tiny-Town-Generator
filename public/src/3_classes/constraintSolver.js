@@ -185,12 +185,13 @@ complete total duration: ${completeTotalDuration} ms
 		for (let i = 0; i < numPatterns; i++) allPatternsPossible.setBit(i);
 
 		const waveMatrix = [];
+		for (let y = 0; y < outputHeight; y++) waveMatrix[y] = [];
+
 		for (let y = 0; y < outputHeight; y++) {
-			waveMatrix[y] = [];
-			for (let x = 0; x < outputWidth; x++) {
-				waveMatrix[y][x] = Bitmask.createCopy(allPatternsPossible);
-			}
-		}
+		for (let x = 0; x < outputWidth; x++) {
+			waveMatrix[y][x] = Bitmask.createCopy(allPatternsPossible);
+		}}
+		
 		return waveMatrix;
 	}
 
@@ -314,31 +315,23 @@ complete total duration: ${completeTotalDuration} ms
 		let leastEntropyCellPositions = [];
 
 		for (let y = 0; y < waveMatrix.length; y++) {
-			for (let x = 0; x < waveMatrix[0].length; x++) {
+		for (let x = 0; x < waveMatrix[0].length; x++) {
+			const start = performance.now();
+			const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
+			const duration = performance.now() - start;
+			this.getShannonEntropy_TotalDuration += duration;
+			this.getShannonEntropy_NumCalls++;
 
-				const start = performance.now();
-				const entropy = this.getShannonEntropy(waveMatrix[y][x], weights);
-				const duration = performance.now() - start;
-				this.getShannonEntropy_TotalDuration += duration;
-				this.getShannonEntropy_NumCalls++;
-
-				if (entropy < leastEntropy && entropy > 0) {
-					leastEntropy = entropy;
-					leastEntropyCellPositions = [[y, x]];
-				}
-				else if (entropy === leastEntropy) {
-					leastEntropyCellPositions.push([y, x]);
-				}
+			if (entropy < leastEntropy && entropy > 0) {
+				leastEntropy = entropy;
+				leastEntropyCellPositions = [[y, x]];
 			}
-		}
+			else if (entropy === leastEntropy) leastEntropyCellPositions.push([y, x]);
+		}}
 
 		const len = leastEntropyCellPositions.length;
-		if (len > 0) {
-			return leastEntropyCellPositions[Math.floor(Math.random() * len)];	// random element (cell position)
-		}
-		else {
-			return [-1, -1];
-		}
+		if (len > 0) return leastEntropyCellPositions[Math.floor(Math.random() * len)];	// random element (cell position)
+		else return [-1, -1];
 	}
 
 	/**
@@ -375,20 +368,21 @@ complete total duration: ${completeTotalDuration} ms
 	 */
 	waveMatrixToImage(waveMatrix, patterns) {
 		const image = [];
-		for (let y = 0; y < waveMatrix.length; y++) {
-			image[y] = [];
-			for (let x = 0; x < waveMatrix[0].length; x++) {
-				const start = performance.now();
-				const possiblePatterns_Array = waveMatrix[y][x].toArray();
-				const duration = performance.now() - start;
-				this.toArray_TotalDuration += duration;
-				this.toArray_NumCalls++;
+		for (let y = 0; y < waveMatrix.length; y++) image[y] = [];
 
-				const i = possiblePatterns_Array[0];	// should be guaranteed to only have 1 possible pattern
-				const tileID = patterns[i][0][0];
-				image[y][x] = tileID;
-			}
-		}
+		for (let y = 0; y < waveMatrix.length; y++) {
+		for (let x = 0; x < waveMatrix[0].length; x++) {
+			const start = performance.now();
+			const possiblePatterns_Array = waveMatrix[y][x].toArray();
+			const duration = performance.now() - start;
+			this.toArray_TotalDuration += duration;
+			this.toArray_NumCalls++;
+
+			const i = possiblePatterns_Array[0];	// should be guaranteed to only have 1 possible pattern
+			const tileID = patterns[i][0][0];
+			image[y][x] = tileID;
+		}}
+
 		return image;
 	}
 }

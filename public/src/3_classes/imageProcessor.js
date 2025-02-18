@@ -53,24 +53,21 @@ class ImageProcessor {
 		const uniquePatterns = new Map();	// <pattern, index>
 		
 		for (const image of images) {
-			for (let y = 0; y < image.length-N+1; y++) {		// length-N+1 because we're not processing image as periodic
-				for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
-
-					const p = this.getPattern(image, N, y, x);
-					const p_str = p.toString();	// need to convert to string because maps compare arrays using their pointers
-					if (uniquePatterns.has(p_str)) {
-						const i = uniquePatterns.get(p_str);
-						this.weights[i]++;
-					}
-					else {
-						this.patterns.push(p);
-						this.weights.push(1);
-						uniquePatterns.set(p_str, this.patterns.length-1);
-					}
+			for (let y = 0; y < image.length-N+1; y++) {	// length-N+1 because we're not processing image as periodic
+			for (let x = 0; x < image[0].length-N+1; x++) {	// length-N+1 because we're not processing image as periodic
+				const p = this.getPattern(image, N, y, x);
+				const p_str = p.toString();	// need to convert to string because maps compare arrays using their pointers
+				if (uniquePatterns.has(p_str)) {
+					const i = uniquePatterns.get(p_str);
+					this.weights[i]++;
 				}
-			}
+				else {
+					this.patterns.push(p);
+					this.weights.push(1);
+					uniquePatterns.set(p_str, this.patterns.length-1);
+				}
+			}}
 		}
-		
 	}
 
 	/**
@@ -82,12 +79,13 @@ class ImageProcessor {
 	 */
 	getPattern(image, N, y, x) {
 		const pattern = [];
+		for (let ny = 0; ny < N; ny++) pattern[ny] = [];
+
 		for (let ny = 0; ny < N; ny++) {
-			pattern[ny] = [];
-			for (let nx = 0; nx < N; nx++) {
-				pattern[ny][nx] = image[y+ny][x+nx];
-			}
-		}
+		for (let nx = 0; nx < N; nx++) {
+			pattern[ny][nx] = image[y+ny][x+nx];
+		}}
+		
 		return pattern;
 	}
 
@@ -110,16 +108,14 @@ class ImageProcessor {
 		const oppositeDirIndex = new Map([[0, 1], [1, 0], [2, 3], [3, 2]]);	// input direction index k to get opposite direction index o
 
 		for (let i = 0; i < this.patterns.length; i++) {
-			for (let j = i+1; j < this.patterns.length; j++) {
-				for (let k = 0; k < DIRECTIONS.length; k++) {
-					if (this.isAdjacent(i, j, k)) {
-						const o = oppositeDirIndex.get(k);
-						this.adjacencies[i][k].setBit(j);
-						this.adjacencies[j][o].setBit(i);
-					}
-				}
+		for (let j = i+1; j < this.patterns.length; j++) {
+		for (let k = 0; k < DIRECTIONS.length; k++) {
+			if (this.isAdjacent(i, j, k)) {
+				const o = oppositeDirIndex.get(k);
+				this.adjacencies[i][k].setBit(j);
+				this.adjacencies[j][o].setBit(i);
 			}
-		}
+		}}}
 	}
 
 	/**
@@ -155,12 +151,12 @@ class ImageProcessor {
 		const endX = p1[0].length + end.get(dx);
 
 		for (let y = startY; y < endY; y++) {
-			for (let x = startX; x < endX; x++) {
-				const tile1 = p1[y][x];
-				const tile2 = p2[y+dy][x+dx];	// apply offsets
-				if (tile1 !== tile2) return false;
-			}
-		}
+		for (let x = startX; x < endX; x++) {
+			const tile1 = p1[y][x];
+			const tile2 = p2[y+dy][x+dx];	// apply offsets
+			if (tile1 !== tile2) return false;
+		}}
+		
 		return true;
 	}
 }
