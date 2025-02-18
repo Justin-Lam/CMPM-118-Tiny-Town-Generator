@@ -1,5 +1,5 @@
 /** Gets a batch of pngs generated in scene and sends the base64 png data to server for saving. */
-export async function autoExport(numRuns, scene){
+async function autoExport(numRuns, scene){
 	console.log("Generating batch...");
 
 	// Temporarily shrink canvas to output size
