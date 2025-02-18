@@ -1,12 +1,13 @@
 import Phaser from "../../lib/phaser.module.js"
+
 export class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
 	cs = new ConstraintSolver();
+
 	mapIndex = 1;
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
-	tileSize = 16;
 
 	maxAttempts = 10;
 	numRuns = 10;	// for this.getAverageRuntime() and autoExport()
@@ -23,15 +24,14 @@ export class TinyTownGenerator extends Phaser.Scene {
 
 	create()
 	{
-		this.setupControls();
 		this.showInputImage();
+		this.setupControls();
 	}
 
 	showInputImage() {
 		this.multiLayerMap = this.add.tilemap("tinyTownMap", 16, 16, 40, 25);
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap");
 
-		// Use the following for map2+:
 		if (this.mapIndex === 1) {
 			this.groundLayer = this.multiLayerMap.createLayer("Ground-n-Walkways", this.tileset, 0, 0);
 			this.treesLayer = this.multiLayerMap.createLayer("Trees-n-Bushes", this.tileset, 0, 0);
@@ -46,35 +46,23 @@ export class TinyTownGenerator extends Phaser.Scene {
 	}
 
 	setupControls() {
-		this.runWFC_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-		this.clear_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
-		this.timedRuns_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
-		this.autoExport_Key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+		this.key_Run = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+		this.key_Clear = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+		this.key_AvgRuntime = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.T);
+		this.key_Export = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-		this.runWFC_Key.on("down", () => this.generateMap());
-		this.timedRuns_Key.on("down", () => this.getAverageRuntime(this.numRuns));
-		this.autoExport_Key.on("down", () => autoExport(this.numRuns, this)); 
-		this.clear_Key.on("down", () => {
-			for (const layer of this.multiLayerMapLayers) {
-				layer.setVisible(true);
-			}
-			if (this.groundMap) {
-				this.groundMap.destroy();
-			}
-			if (this.structuresMap) {
-				this.structuresMap.destroy();
-			}
-		});
+		this.key_Run.on("down", () => this.generateMap());
+		this.key_Clear.on("down", () => this.clear());
+		this.key_AvgRuntime.on("down", () => this.getAverageRuntime(this.numRuns));
+		this.key_Export.on("down", () => autoExport(this.numRuns, this)); 
 
-
-		const controls = `
-		<h2>Controls (open console recommended)</h2>
-		Run WFC: R <br>
-		Clear Output: C <br>
-		Get average runtime over ${this.numRuns} runs: T <br>
-		Export ${this.numRuns} runs as .png files: E
+		document.getElementById("description").innerHTML = `
+			<h2>Controls</h2>
+			Run Generator: R <br>
+			Clear Output: C <br>
+			Get average runtime over ${this.numRuns} runs: T <br>
+			Export ${this.numRuns} runs as png files: E
 		`;
-		document.getElementById("description").innerHTML = controls;
 	}
 
 	generateMap(){
@@ -82,6 +70,8 @@ export class TinyTownGenerator extends Phaser.Scene {
 		let weights;
 		let adjacencies;
 		let generationWasSuccessful;
+		let groundImage;
+		let structuresImage;
 
 		console.log("Processing ground");
 		this.ip.process(IMAGES_GROUND, this.N);
@@ -90,7 +80,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 		adjacencies = this.ip.adjacencies;
 		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight, this.maxAttempts);
 		if (!generationWasSuccessful) return;
-		const groundImage = this.cs.output;
+		groundImage = this.cs.output;
 
 		console.log("Structures");
 		this.ip.process(IMAGES_STRUCTURES, this.N);
@@ -99,7 +89,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 		adjacencies = this.ip.adjacencies;
 		generationWasSuccessful = this.cs.solve(patterns, weights, adjacencies, this.outputWidth, this.outputHeight, this.maxAttempts);
 		if (!generationWasSuccessful) return;
-		const structuresImage = this.cs.output;
+		structuresImage = this.cs.output;
 
 		this.showImages(groundImage, structuresImage);
 	}
@@ -109,12 +99,8 @@ export class TinyTownGenerator extends Phaser.Scene {
 	 * @param {number[][]} structuresImage 
 	 */
 	showImages(groundImage, structuresImage) {
-		if (this.groundMap) {
-			this.groundMap.destroy();
-		}
-		if (this.structuresMap) {
-			this.structuresMap.destroy();
-		}
+		if (this.groundMap) this.groundMap.destroy();
+		if (this.structuresMap) this.structuresMap.destroy();
 
 		this.groundMap = this.make.tilemap({
 			data: groundImage,
@@ -130,25 +116,30 @@ export class TinyTownGenerator extends Phaser.Scene {
 		this.groundMap.createLayer(0, this.tileset, 0, 0);
 		this.structuresMap.createLayer(0, this.tileset, 0, 0);
 
-		for (const layer of this.multiLayerMapLayers) {
-			layer.setVisible(false);
-		}
-	}	
+		for (const layer of this.multiLayerMapLayers) layer.setVisible(false);
+	}
+
+	clear() {
+		for (const layer of this.multiLayerMapLayers) layer.setVisible(true);
+		if (this.groundMap) this.groundMap.destroy();
+		if (this.structuresMap) this.structuresMap.destroy();
+	}
 
 	getAverageRuntime(numRuns){
-		let timeStart = performance.now();
-		let timeTotal = 0;
-		for(let i = 1; i <= numRuns; i++){
+		let totalDuration = 0;
+
+		for(let i = 1; i <= numRuns; i++){	// start i at 1 because we'll be console logging the run number
+			const start = performance.now();
+
 			this.generateMap();
 
-			let timeEnd = performance.now();
-			let timeElapsed = timeEnd - timeStart;
-			timeTotal += timeElapsed;
+			const end = performance.now();
+			const duration = end - start;
+			totalDuration += duration;
 
-			console.log(`Generation #${i} took ${timeElapsed.toFixed(2)} ms`)
-
-			timeStart = performance.now();
+			console.log(`Generation #${i} took ${duration.toFixed(2)} ms`)
 		}
-		console.log(`Generating ${numRuns} maps took ${timeTotal.toFixed(2)} ms total for an average time of ${(timeTotal / numRuns).toFixed(2)} ms`)
+		
+		console.log(`Generating ${numRuns} maps took ${totalDuration.toFixed(2)} ms total for an average time of ${(totalDuration / numRuns).toFixed(2)} ms`)
 	}
 }
