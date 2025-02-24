@@ -47,11 +47,10 @@ app.listen(PORT, () => {
 const fs = require('fs');
 const exportFolder = "exports";
 
+// exports
 app.use(express.json({ limit: '50mb' })); // Allows large Base64 images
 app.post(`/${exportFolder}`, (req, res) => {
   const images = req.body.images; // Array of base64 images
-  //console.log("TYPE:", typeof(images));
-  //console.log("TYPE:", Array.isArray(images));
 
   if (!images || images.length === 0) {
       return res.status(400).json({ error: 'No images received' });
@@ -63,6 +62,17 @@ app.post(`/${exportFolder}`, (req, res) => {
       // Save as a PNG file
       const filePath = path.join(__dirname, `/${exportFolder}`, `map_${index}.png`);
       fs.writeFileSync(filePath, base64Data, 'base64');
+  });
+
+  const descriptions = req.body.descriptions;
+  descriptions.forEach((text, index) => {
+    const formattedParagraph = text.split(`. `).join(`.\n`);
+
+    // Save as a TXT file
+    const filePath = path.join(__dirname, `/${exportFolder}`, `map_${index}.txt`);
+    fs.writeFile(filePath, formattedParagraph, (err) => {
+      if(err) console.error(`Error writing to ${filePath}`)
+    });
   });
 
   res.json({ message: 'Images received and saved!' });

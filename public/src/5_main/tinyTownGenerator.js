@@ -1,5 +1,4 @@
 import Phaser from "../../lib/phaser.module.js"
-
 export class TinyTownGenerator extends Phaser.Scene {
 	ip = new ImageProcessor();
 	cs = new ConstraintSolver();
@@ -8,6 +7,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 	N = 2;
 	outputWidth = 24;
 	outputHeight = 15;
+	tileSize = 16;
 
 	maxAttempts = 10;
 	numRuns = 10;	// for this.getAverageRuntime() and autoExport()
@@ -29,7 +29,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 	}
 
 	showInputImage() {
-		this.multiLayerMap = this.add.tilemap("tinyTownMap", 16, 16, 40, 25);
+		this.multiLayerMap = this.add.tilemap("tinyTownMap", this.tileSize, this,this.tileSize, 40, 25);
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap");
 
 		if (this.mapIndex === 1) {
@@ -54,7 +54,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 		this.key_Run.on("down", () => this.generateMap());
 		this.key_Clear.on("down", () => this.clear());
 		this.key_AvgRuntime.on("down", () => this.getAverageRuntime(this.numRuns));
-		this.key_Export.on("down", () => autoExport(this.numRuns, this)); 
+		this.key_Export.on("down", () => autoExport(this)); 
 
 		document.getElementById("description").innerHTML = `
 			<h2>Controls</h2>
@@ -65,7 +65,7 @@ export class TinyTownGenerator extends Phaser.Scene {
 		`;
 	}
 
-	generateMap(){
+	generateMap(exportMode = false){
 		let patterns;
 		let weights;
 		let adjacencies;
@@ -92,6 +92,12 @@ export class TinyTownGenerator extends Phaser.Scene {
 		structuresImage = this.cs.output;
 
 		this.showImages(groundImage, structuresImage);
+
+		// enables autoexporter to export world facts database
+		if(exportMode){
+			let wf = new WorldFactsDatabaseMaker(structuresImage, this.outputWidth, this.outputHeight, 2);
+			return { worldFacts: wf };
+		}
 	}
 
 	/**
@@ -104,13 +110,13 @@ export class TinyTownGenerator extends Phaser.Scene {
 
 		this.groundMap = this.make.tilemap({
 			data: groundImage,
-			tileWidth: 16,
-			tileHeight: 16
+			tileWidth: this.tileSize,
+			tileHeight: this.tileSize
 		});
 		this.structuresMap = this.make.tilemap({
 			data: structuresImage,
-			tileWidth: 16,
-			tileHeight: 16
+			tileWidth: this.tileSize,
+			tileHeight: this.tileSize
 		});
 		
 		this.groundMap.createLayer(0, this.tileset, 0, 0);
