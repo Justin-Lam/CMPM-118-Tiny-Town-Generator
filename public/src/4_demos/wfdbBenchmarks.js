@@ -35,7 +35,7 @@ export class wfdbBenchmarks extends Phaser.Scene {
         let w_scale = window.game.canvas.width / (this.tileSize * w);
         let h_scale = window.game.canvas.height / (this.tileSize * h);
 
-		this.multiLayerMap = this.add.tilemap(map_key, this.tileSize, this, this.tileSize, w, h);
+        this.multiLayerMap = this.add.tilemap(map_key, this.tileSize, this, this.tileSize, w, h);
 		this.tileset = this.multiLayerMap.addTilesetImage("kenney-tiny-town", "tilemap");
 
         let groundLayer = this.multiLayerMap.createLayer("ground", this.tileset, 0, 0);
@@ -52,8 +52,11 @@ export class wfdbBenchmarks extends Phaser.Scene {
     }
 
     // yoinked from WFDB Maker demo
-    createSingleLayerMap(w, h, layers) {
-		// Initialize data
+    createSingleLayerMap(w, h) {
+        let w_scale = window.game.canvas.width / (this.tileSize * w);
+        let h_scale = window.game.canvas.height / (this.tileSize * h);
+        
+        // Initialize data
 		this.singleLayerMapData = [];
 		for (let y = 0; y < h; y++) {
 			this.singleLayerMapData[y] = [];
@@ -75,12 +78,14 @@ export class wfdbBenchmarks extends Phaser.Scene {
 			tileHeight: this.TILE_SIZE
 		});
 		this.combinedLayer = this.singleLayerMap.createLayer(0, this.tileset).setVisible(false);
-	}
+        this.combinedLayer.setScale(w_scale, h_scale);
+    }
 
     generateWFDB(w, h){
         let wf = new WorldFactsDatabaseMaker(this.singleLayerMapData, w, h, 2);
 		wf.getWorldFacts();
 		let description = wf.getDescriptionParagraph();
-		console.log(description);
+		//console.log(description);
+        wf.printWorldFacts();
     }
 }
